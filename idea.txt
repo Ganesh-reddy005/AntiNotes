@@ -1,0 +1,132 @@
+Antinotes — Project Summary (with implementation hints)
+
+Antinotes is an agentic AI EdTech SaaS focused on improving students’ thinking and problem-solving ability, not rote memorization.
+The core value is deep personalization through learning signals extracted from user attempts, especially for DSA and coding problems.
+
+Core Philosophy
+
+Questions are not the product → learning signal is
+
+Wrong answers are more valuable than correct ones
+
+The system continuously builds a cognitive profile of each learner
+
+Teaching adapts to thinking style, weaknesses, and progress over time
+
+High-Level Architecture
+
+Frontend
+
+Next.js (TypeScript)
+
+Auth via Clerk
+
+Pages: Dashboard, Practice (DSA), Review, Tutor
+
+Backend
+
+FastAPI (Python)
+
+REST APIs
+
+JWT verification from Clerk
+
+Async background workers
+
+Database
+
+PostgreSQL (SQLAlchemy + Alembic)
+
+pgvector for embeddings (later)
+
+Redis for background jobs
+
+LLMs
+
+OpenAI models
+
+Structured JSON outputs (important)
+
+Agent System (Core Intelligence)
+1. Profile Agent
+
+Purpose: Maintain a dynamic learning profile for each user.
+
+Data stored:
+
+Skill level per topic
+
+Strengths & weaknesses
+
+Common mistake patterns
+
+Preferred explanation style
+
+Progress trend
+
+Updates:
+Runs initially and is continuously updated via background jobs.
+
+2. Reviewer Agent (MOST IMPORTANT)
+
+Purpose: Analyze user code submissions and extract learning signals.
+
+Input:
+
+Problem statement
+
+User code
+
+User profile
+
+Output (structured JSON):
+
+Score
+
+Strengths
+
+Weaknesses
+
+Thinking style
+
+Concept gaps
+
+Topics to revise
+
+This output is stored and feeds all other agents.
+
+3. Tutor Agent
+
+Purpose: Teach based on who the learner is, not generic explanations.
+
+Input:
+
+User question
+
+User profile
+
+Recent weaknesses
+
+Behavior:
+
+Adjusts depth, tone, and hints
+
+Encourages reasoning
+
+Avoids spoon-feeding answers
+
+4. Background Agent (Async)
+
+Purpose: Long-term intelligence & memory.
+
+Tasks:
+
+Summarize multiple reviews
+
+Update profile trends
+
+Generate learning insights
+
+Store semantic memory (embeddings later)
+
+Runs asynchronously via Redis worker.
