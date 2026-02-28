@@ -107,10 +107,14 @@ class ReviewerAgent:
             response = await review_client.chat.completions.create(
                 model=settings.REVIEW_MODEL,
                 messages=[
-                    {"role": "system", "content": "You are a JSON-only API. Output strict JSON."},
+                    {"role": "system", "content":"""
+                You are a strict JSON-only API. Your entire response must be a single valid JSON object.
+                Do not include any explanations, markdown, code blocks, or extra text outside the JSON.
+                Follow the exact schema provided in the user prompt."""},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.2, # Low temp for consistent JSON
+                max_tokens=3000,
                 response_format={"type": "json_object"}
             )
 

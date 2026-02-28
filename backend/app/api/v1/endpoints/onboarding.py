@@ -1,11 +1,12 @@
 """
-Onboarding Endpoint - Simple Form
+Onboarding Endpoint
 
-Collects user preferences to calibrate AI.
-No quiz, just direct questions.
+Collects user preferences to calibrate the AI's personalization engine.
+All fields feed directly into the reviewer and tutor system prompts.
 """
 
 from fastapi import APIRouter, HTTPException, Depends
+from bson import ObjectId
 from app.schemas.onboarding import OnboardingForm, OnboardingResult
 from app.models.user import User
 from app.models.profile import Profile
@@ -14,54 +15,52 @@ from app.core.dependencies import get_current_user
 router = APIRouter()
 
 
-@router.post("/submit")
+@router.post("/submit", response_model=OnboardingResult)
 async def submit_onboarding(
     form: OnboardingForm,
     current_user: User = Depends(get_current_user)
-) -> OnboardingResult:
-    """
-    Submit onboarding form and create/update profile.
-    Cost: $0 (no AI, just data storage)
-    
-    Requires: Authentication
-    """
-    
-    # Find or create profile
-    profile = await Profile.find_one(Profile.user == current_user)
+):
+    # Find or create profile using raw ObjectId query (Beanie Link fix)
+    profile = await Profile.find_one({"user.$id": ObjectId(str(current_user.id))})
     if not profile:
         profile = Profile(user=current_user)
-    
-    # Set profile from form
+
+    # --- Core calibration ---
     profile.skill_level = form.coding_level
-    profile.onboarding_completed = True
     profile.preferred_explanation_style = form.teaching_style
-    # 2. AI Personality & Context
-    profile.primary_language = form.primary_language  # (NEW)
-    profile.additional_context = form.additional_context  # (NEW)
-    
-    # Set initial known concepts based on skill level
+    profile.primary_language = form.primary_language
+
+    # --- Goal and context (feeds goal_instruction in reviewer prompt) ---
+    profile.goal = form.goal
+    profile.background = form.background
+    profile.additional_context = form.additional_context
+
+    # --- Onboarding complete ---
+    profile.onboarding_completed = True
+
+    # --- Seed known_concepts based on skill level ---
     if form.coding_level == "beginner":
-        profile.known_concepts = ["variables", "loops", "conditionals", "functions"]
+        profile.known_concepts = ["variables", "loops", "conditionals", "functions", "lists"]
     elif form.coding_level == "intermediate":
-        profile.known_concepts = ["arrays", "strings", "hash_tables", "recursion", "sorting"]
+        profile.known_concepts = ["arrays", "strings", "hash_tables", "recursion", "sorting", "binary_search"]
     else:  # advanced
-        profile.known_concepts = ["algorithms", "data_structures", "dynamic_programming", "graphs", "trees"]
-    
-    # Store goal and other metadata
-    # We can add custom fields or use a JSON field for flexibility
-    
+        profile.known_concepts = [
+            "algorithms", "data_structures", "dynamic_programming",
+            "graphs", "trees", "greedy", "backtracking", "bit_manipulation"
+        ]
+
+    # Save (insert if new, update if existing)
     if profile.id:
         await profile.save()
     else:
         await profile.insert()
-    
-    # Create friendly response
+
     messages = {
-        "beginner": f"Welcome! We'll start with the basics of {form.primary_language}.",
-        "intermediate": f"Great! Let's optimize your {form.primary_language} skills.",
-        "advanced": "Excellent! Get ready for complex architectural challenges."
+        "beginner": f"Welcome! We'll start with the foundations of {form.primary_language} and grow from there.",
+        "intermediate": f"Great! Let's identify your weak spots in {form.primary_language} and sharpen them.",
+        "advanced": "Let's go deep. We'll push your reasoning and find the gaps even strong coders miss."
     }
-    
+
     return OnboardingResult(
         skill_level=form.coding_level,
         teaching_style=form.teaching_style,
@@ -70,3 +69,4 @@ async def submit_onboarding(
         additional_context=form.additional_context,
         message=messages.get(form.coding_level, "Let's get started!")
     )
+

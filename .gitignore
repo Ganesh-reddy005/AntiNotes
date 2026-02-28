@@ -268,3 +268,10 @@ docker-compose.override.yml
 # === Misc ===
 .env.example  # Keep this line commented - this file should be committed
 # .env.example
+
+# === Scratch Scripts and Secrets ===
+backend/script.py
+backend/test_db.py
+backend/test_db2.py
+frontend/.env
+frontend/.env.local

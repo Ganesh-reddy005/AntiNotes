@@ -2,29 +2,18 @@ import os
 from typing import List, Optional
 from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import AnyHttpUrl
-from dotenv import load_dotenv
-load_dotenv()
-# 1. robust path finding
-# This navigates from app/core/config.py -> app/core -> app -> backend (root)
+
+
+# config.py -> app/core -> app -> backend -> AntiNotes (root with .env)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-
-# Validator for model names
-from pydantic import field_validator
-
-@field_validator("REVIEW_MODEL", "TUTOR_MODEL", "SUMMARY_MODEL")
-@classmethod
-def model_must_not_be_empty(cls, v):
-    if not v or not v.strip():
-        raise ValueError("Model name cannot be empty")
-    return v
-
+# .env lives one level up from backend/
+ENV_FILE = BASE_DIR.parent / ".env"
 
 class Settings(BaseSettings):
     PROJECT_NAME: str
     API_V1_STR: str = "/api/v1"
     
-    BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = [
+    BACKEND_CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:8000",
     ]
@@ -62,8 +51,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_DAYS: int = 7
 
     model_config = SettingsConfigDict(
-        env_file=str(BASE_DIR / ".env"), 
-        case_sensitive=True, 
+        env_file=str(ENV_FILE),
+        case_sensitive=True,
         extra="ignore"
     )
 

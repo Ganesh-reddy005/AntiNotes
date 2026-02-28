@@ -9,21 +9,25 @@ class MessageBase(BaseModel):
     content: str
     type: MessageType = MessageType.CHAT
 
+# Input: A message to add to a session
+class MessageCreate(MessageBase):
+    pass
+
 # Output: Message with timestamp
 class MessageRead(MessageBase):
     timestamp: datetime
 
-# Input: Start a session
+# Input: Start a session (only need the problem slug; user comes from auth token)
 class SessionCreate(BaseModel):
-    user_email: str
     problem_slug: str
 
 # Output: Session status
 class SessionRead(BaseModel):
-    id: str = Field(alias="_id") 
+    id: str = Field(alias="_id")
     status: SessionStatus
     messages: List[MessageRead]
     created_at: datetime
 
     class Config:
         from_attributes = True
+        populate_by_name = True
