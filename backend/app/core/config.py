@@ -45,6 +45,12 @@ class Settings(BaseSettings):
     LLM_MODEL: str
     LLM_BASE_URL: Optional[str] = None
     
+    # === CODE VALIDATION ===
+    # Self-hosted Judge0 CE for syntax/compile checking before LLM review.
+    # Dev:        http://localhost:2358   (run judge0/docker-compose.yml)
+    # Production: http://server:2358      (Docker internal network)
+    JUDGE0_URL: str = "http://localhost:2358"
+
     # === JWT AUTHENTICATION ===
     SECRET_KEY: str  # Generate with: openssl rand -hex 32
     ALGORITHM: str = "HS256"

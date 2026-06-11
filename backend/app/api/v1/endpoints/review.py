@@ -17,6 +17,7 @@ from app.agents.reviewer import ReviewerAgent
 from app.agents.revision import RevisionAgent
 from app.agents.memory_agent import LearningMemoryAgent
 from app.core.dependencies import get_current_user
+from app.services.syntax_service import SyntaxService
 
 router = APIRouter()
 
@@ -80,6 +81,15 @@ async def update_learning_memory(user_id, review_data: Review, problem: Problem)
     if review_data.thinking_style and review_data.thinking_style != "unknown":
         profile.thinking_style = review_data.thinking_style
 
+    if review_data.topics_to_revise:
+        for topic in review_data.topics_to_revise:
+            if topic not in profile.topics_to_revise:
+                profile.topics_to_revise.append(topic)
+            # Ensure it is at least tracked in last_seen_topics so the revision logic picks it up
+            if topic not in profile.last_seen_topics:
+                from datetime import datetime
+                profile.last_seen_topics[topic] = datetime.now()
+
     if problem.tags:
         for topic in problem.tags:
             if review_data.score > 70:
@@ -136,6 +146,18 @@ async def review_submission(
         resp["cached"] = True
         resp["detailed_feedback"] = existing_review.detailed_feedback + revision_msg
         return resp
+
+    # 2.5. SYNTAX / COMPILE GATE — never send broken code to the LLM
+    is_valid, compile_error = await SyntaxService.check_syntax(data.code, data.language)
+    if not is_valid:
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "error": "COMPILE_ERROR",
+                "language": data.language,
+                "message": compile_error or "Syntax or compile error detected. Fix your code and resubmit.",
+            }
+        )
 
     # 3. Save submission
     submission = Submission(

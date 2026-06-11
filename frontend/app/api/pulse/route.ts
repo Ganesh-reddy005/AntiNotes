@@ -19,9 +19,9 @@ export async function POST(req: Request) {
     const logicCount = await PulseVote.countDocuments({ category: 'logic' });
     const syntaxCount = await PulseVote.countDocuments({ category: 'syntax' });
 
-    return NextResponse.json({ 
-      success: true, 
-      counts: { logic: logicCount, syntax: syntaxCount } 
+    return NextResponse.json({
+      success: true,
+      counts: { logic: logicCount, syntax: syntaxCount }
     });
 
   } catch (error) {
@@ -38,7 +38,7 @@ export async function GET() {
     const syntaxCount = await PulseVote.countDocuments({ category: 'syntax' });
 
     return NextResponse.json({ logic: logicCount, syntax: syntaxCount });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 });
   }
 }

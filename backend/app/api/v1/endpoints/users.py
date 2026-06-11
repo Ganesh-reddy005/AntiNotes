@@ -48,6 +48,7 @@ async def get_my_profile(current_user: User = Depends(get_current_user)):
 
     # Return profile dict with overridden live stats
     data = profile.model_dump()
+    data.pop("user", None)
     data["id"] = str(profile.id)
     data["total_reviews"] = live_total_reviews
     data["problems_solved"] = len(solved_slugs)
@@ -58,8 +59,7 @@ async def get_my_profile(current_user: User = Depends(get_current_user)):
 async def get_my_history(current_user: User = Depends(get_current_user)):
     """Returns the last 20 reviews with full details for the current user."""
     reviews = await Review.find(
-        {"user.$id": ObjectId(str(current_user.id))},
-        fetch_links=True
+        {"user.$id": ObjectId(str(current_user.id))}
     ).sort(-Review.created_at).limit(20).to_list()
 
     result = []

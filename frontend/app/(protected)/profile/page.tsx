@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { userApi, Profile } from "@/lib/api";
 import {
     User as UserIcon, LogOut, Code2, RefreshCw, LayoutDashboard,
-    Save, Sparkles, Loader2, CheckCircle2, TrendingUp, Cpu, Target, HelpCircle
+    Save, Sparkles, Loader2, CheckCircle2, Cpu
 } from "lucide-react";
 
 // ── Navbar ─────────────────────────────────────────────────────────────────────
@@ -171,8 +171,8 @@ export default function ProfilePage() {
                                     {FIELD_OPTIONS.skill_level.map(opt => (
                                         <button key={opt.id} onClick={() => setForm({ ...form, skill_level: opt.id })}
                                             className={`p-3 border text-left transition-all ${form.skill_level === opt.id
-                                                    ? "border-mistral-orange bg-orange-50/50"
-                                                    : "border-mistral-navy/10 hover:border-mistral-navy/30 bg-mistral-bg/50"
+                                                ? "border-mistral-orange bg-orange-50/50"
+                                                : "border-mistral-navy/10 hover:border-mistral-navy/30 bg-mistral-bg/50"
                                                 }`}>
                                             <div className={`font-mono text-xs mb-1 ${form.skill_level === opt.id ? "text-mistral-orange font-bold" : "text-mistral-navy"}`}>
                                                 {opt.label}
@@ -192,8 +192,8 @@ export default function ProfilePage() {
                                     {FIELD_OPTIONS.goal.map(opt => (
                                         <button key={opt.id} onClick={() => setForm({ ...form, goal: opt.id })}
                                             className={`p-3 border text-left transition-all ${form.goal === opt.id
-                                                    ? "border-mistral-orange bg-orange-50/50"
-                                                    : "border-mistral-navy/10 hover:border-mistral-navy/30 bg-mistral-bg/50"
+                                                ? "border-mistral-orange bg-orange-50/50"
+                                                : "border-mistral-navy/10 hover:border-mistral-navy/30 bg-mistral-bg/50"
                                                 }`}>
                                             <div className={`font-mono text-xs mb-1 ${form.goal === opt.id ? "text-mistral-orange font-bold" : "text-mistral-navy"}`}>
                                                 {opt.label}
@@ -213,8 +213,8 @@ export default function ProfilePage() {
                                     {FIELD_OPTIONS.preferred_explanation_style.map(opt => (
                                         <button key={opt.id} onClick={() => setForm({ ...form, preferred_explanation_style: opt.id })}
                                             className={`p-3 border text-left transition-all ${form.preferred_explanation_style === opt.id
-                                                    ? "border-mistral-orange bg-orange-50/50"
-                                                    : "border-mistral-navy/10 hover:border-mistral-navy/30 bg-mistral-bg/50"
+                                                ? "border-mistral-orange bg-orange-50/50"
+                                                : "border-mistral-navy/10 hover:border-mistral-navy/30 bg-mistral-bg/50"
                                                 }`}>
                                             <div className={`font-mono text-xs mb-1 ${form.preferred_explanation_style === opt.id ? "text-mistral-orange font-bold" : "text-mistral-navy"}`}>
                                                 {opt.label}

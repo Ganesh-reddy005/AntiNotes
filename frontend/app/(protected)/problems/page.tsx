@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { problemsApi, Problem } from "@/lib/api";
-import { Search, Code2, ChevronRight, Filter } from "lucide-react";
-import { LogOut, RefreshCw, BarChart2 } from "lucide-react";
+import { Search, Code2, ChevronRight } from "lucide-react";
+import { LogOut, RefreshCw } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 const DIFFICULTIES = ["All", "Easy", "Medium", "Hard"];
@@ -85,8 +85,8 @@ export default function ProblemsPage() {
                                 key={d}
                                 onClick={() => setDifficulty(d)}
                                 className={`px-3 py-2 font-mono text-xs border transition-all ${difficulty === d
-                                        ? "bg-mistral-navy text-white border-mistral-navy shadow-[2px_2px_0px_0px_#f97316]"
-                                        : "bg-white text-mistral-navy/60 border-mistral-navy/20 hover:border-mistral-navy"
+                                    ? "bg-mistral-navy text-white border-mistral-navy shadow-[2px_2px_0px_0px_#f97316]"
+                                    : "bg-white text-mistral-navy/60 border-mistral-navy/20 hover:border-mistral-navy"
                                     }`}
                             >
                                 {d}

@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { problemsApi, reviewApi, sessionApi, Problem, Review, userApi, Profile } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
+import { problemsApi, reviewApi, sessionApi, Problem, Review, userApi } from "@/lib/api";
+import FloatingTutor, { TutorMessage } from "@/components/FloatingTutor";
+
 import {
     Terminal, Loader2, ChevronRight, MessageSquare,
     CheckCircle2, XCircle, AlertTriangle
@@ -17,6 +18,18 @@ const LANG_MAP: Record<string, string> = {
     python: "python", cpp: "cpp", java: "java", javascript: "javascript",
 };
 
+// Piston language names for the 4 supported languages
+const PISTON_LANG: Record<string, string> = {
+    python: "python",
+    java: "java",
+    cpp: "c++",
+    javascript: "javascript",
+};
+
+const PISTON_URL = process.env.NEXT_PUBLIC_PISTON_URL || "https://emkc.org/api/v2/piston";
+
+
+
 const diffColor = (d: string) =>
     d === "Easy" ? "text-emerald-600 bg-emerald-50 border-emerald-100" :
         d === "Medium" ? "text-amber-600 bg-amber-50 border-amber-100" :
@@ -27,9 +40,9 @@ function ReviewPanel({ review, onTutor }: { review: Review; onTutor: () => void 
     const score = Math.round(Number(review.score) || 0);
     const thinkingStyle = String(review.thinking_style || "—");
     const detailedFeedback = String(review.detailed_feedback || "");
-    const strengths = Array.isArray(review.strengths) ? review.strengths.map((s: any) => String(s)).filter(Boolean) : [];
-    const weaknesses = Array.isArray(review.weaknesses) ? review.weaknesses.map((w: any) => String(w)).filter(Boolean) : [];
-    const conceptGaps = Array.isArray(review.concept_gaps) ? review.concept_gaps.map((c: any) => String(c)).filter(Boolean) : [];
+    const strengths = Array.isArray(review.strengths) ? review.strengths.map((s: unknown) => String(s)).filter(Boolean) : [];
+    const weaknesses = Array.isArray(review.weaknesses) ? review.weaknesses.map((w: unknown) => String(w)).filter(Boolean) : [];
+    const conceptGaps = Array.isArray(review.concept_gaps) ? review.concept_gaps.map((c: unknown) => String(c)).filter(Boolean) : [];
 
     const scoreColor = score >= 80 ? "text-emerald-600 border-emerald-200 bg-emerald-50"
         : score >= 50 ? "text-amber-600 border-amber-200 bg-amber-50"
@@ -127,17 +140,21 @@ function ReviewPanel({ review, onTutor }: { review: Review; onTutor: () => void 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function ProblemSolvePage() {
     const { slug } = useParams<{ slug: string }>();
-    const { user } = useAuth();
-    const router = useRouter();
 
     const [problem, setProblem] = useState<Problem | null>(null);
-    const [profile, setProfile] = useState<Profile | null>(null);
     const [code, setCode] = useState("");
     const [language, setLanguage] = useState("python");
     const [submitting, setSubmitting] = useState(false);
+    const [validating, setValidating] = useState(false);
     const [review, setReview] = useState<Review | null>(null);
     const [error, setError] = useState("");
+    const [syntaxError, setSyntaxError] = useState("");
     const [loading, setLoading] = useState(true);
+
+    // ── Floating tutor state (persists across open/close) ─────────────────────
+    const [tutorOpen, setTutorOpen] = useState(false);
+    const [tutorMessages, setTutorMessages] = useState<TutorMessage[]>([]);
+    const [tutorSessionId, setTutorSessionId] = useState<string | undefined>(undefined);
 
     useEffect(() => {
         (async () => {
@@ -149,7 +166,6 @@ export default function ProblemSolvePage() {
                 setProblem(pRes.data);
                 setCode(pRes.data.starter_code || "");
                 if (profRes) {
-                    setProfile(profRes.data);
                     setLanguage(LANG_MAP[profRes.data.primary_language] || "python");
                 }
             } catch {
@@ -162,17 +178,33 @@ export default function ProblemSolvePage() {
 
     const handleSubmit = async () => {
         if (!problem || submitting) return;
-        setSubmitting(true);
         setReview(null);
         setError("");
+        setSyntaxError("");
+
+        // Submit to the backend. The backend will instantly check syntax natively 
+        // before routing to the LLM. If syntax is invalid, it returns 422 immediately.
+        setSubmitting(true);
         try {
             const res = await reviewApi.submit({ problem_slug: slug, code, language });
             setReview(res.data);
-        } catch (e: any) {
-            const detail = e.response?.data?.detail;
+        } catch (e: unknown) {
+            const err = e as { response?: { status?: number; data?: { detail?: unknown } } };
+            const status = err.response?.status;
+            const detail = err.response?.data?.detail;
+
+            // Backend sent a 422 COMPILE_ERROR (Piston caught it server-side)
+            if (status === 422 && detail && typeof detail === "object") {
+                const d = detail as Record<string, unknown>;
+                if (d.error === "COMPILE_ERROR") {
+                    setSyntaxError(String(d.message || "Compile error — fix your code and resubmit."));
+                    return;
+                }
+            }
+
             let msg = "Review failed. Check your API key.";
             if (typeof detail === "string") msg = detail;
-            else if (Array.isArray(detail)) msg = detail.map((err: any) => err.msg || JSON.stringify(err)).join(" · ");
+            else if (Array.isArray(detail)) msg = detail.map((errItem: Record<string, unknown>) => errItem.msg || JSON.stringify(errItem)).join(" · ");
             else if (detail) msg = JSON.stringify(detail);
             setError(msg);
         } finally {
@@ -180,13 +212,17 @@ export default function ProblemSolvePage() {
         }
     };
 
+    // Opens the floating tutor (creates a session if needed, only once)
     const openTutor = async () => {
-        if (!problem) return;
-        try {
-            const res = await sessionApi.create(problem.slug);
-            router.push(`/tutor/${res.data.id}`);
-        } catch {
-            router.push(`/tutor/new?problem=${problem.slug}`);
+        setTutorOpen(true);
+        // Create session on first open only
+        if (!tutorSessionId && problem) {
+            try {
+                const res = await sessionApi.create(problem.slug);
+                setTutorSessionId(res.data.id);
+            } catch {
+                // session creation failed — tutorApi.ask still works without sessionId
+            }
         }
     };
 
@@ -229,14 +265,27 @@ export default function ProblemSolvePage() {
                         className="font-mono text-xs bg-white border border-mistral-navy/20 text-mistral-navy px-2 py-1 focus:outline-none focus:border-mistral-navy">
                         {Object.keys(LANG_MAP).map(l => <option key={l} value={l}>{l}</option>)}
                     </select>
-                    <button onClick={openTutor}
-                        className="flex items-center gap-1.5 px-3 py-1.5 font-mono text-xs border border-mistral-navy/20 text-mistral-navy/60 hover:border-mistral-navy hover:text-mistral-navy transition-all">
-                        <MessageSquare className="w-3.5 h-3.5" /> Ask AI
+                    <button
+                        onClick={openTutor}
+                        className={`
+                            relative flex items-center gap-1.5 px-3 py-1.5 font-mono text-xs border transition-all
+                            ${tutorOpen
+                                ? "border-mistral-orange text-mistral-orange bg-orange-50"
+                                : "border-mistral-navy/20 text-mistral-navy/60 hover:border-mistral-navy hover:text-mistral-navy"
+                            }
+                        `}
+                    >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        Ask AI
+                        {/* Unread dot when closed but has messages */}
+                        {!tutorOpen && tutorMessages.length > 0 && (
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-mistral-orange rounded-full" />
+                        )}
                     </button>
-                    <button onClick={handleSubmit} disabled={submitting}
+                    <button onClick={handleSubmit} disabled={submitting || validating}
                         className="flex items-center gap-2 px-4 py-1.5 bg-mistral-navy text-white font-mono text-xs border border-mistral-navy shadow-[2px_2px_0px_0px_#f97316] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0px_0px_#f97316] active:shadow-none transition-all disabled:opacity-60 disabled:cursor-not-allowed">
-                        {submitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Terminal className="w-3 h-3 text-mistral-yellow" />}
-                        {submitting ? "Reviewing..." : "Submit"}
+                        {(validating || submitting) ? <Loader2 className="w-3 h-3 animate-spin" /> : <Terminal className="w-3 h-3 text-mistral-yellow" />}
+                        {validating ? "Validating..." : submitting ? "Reviewing..." : "Submit"}
                     </button>
                 </div>
             </div>
@@ -293,7 +342,19 @@ export default function ProblemSolvePage() {
                     </motion.div>
                 )}
 
-                {error && !submitting && (
+                {syntaxError && !validating && (
+                    <motion.div key="syntax-err"
+                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+                        className="flex-shrink-0 border-t border-amber-300 bg-amber-50 px-6 py-3 flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                            <p className="font-mono text-[10px] text-amber-500 uppercase tracking-wider mb-0.5">Syntax / Compile Error — fix before submitting</p>
+                            <pre className="font-mono text-xs text-amber-800 whitespace-pre-wrap">{syntaxError}</pre>
+                        </div>
+                    </motion.div>
+                )}
+
+                {error && !submitting && !syntaxError && (
                     <motion.div key="err"
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
                         className="flex-shrink-0 border-t border-red-200 bg-red-50 px-6 py-3 flex items-center gap-2">
@@ -306,6 +367,16 @@ export default function ProblemSolvePage() {
                     <ReviewPanel key="review" review={review} onTutor={openTutor} />
                 )}
             </AnimatePresence>
+
+            {/* ── Floating Tutor Window ── */}
+            <FloatingTutor
+                problemSlug={slug}
+                sessionId={tutorSessionId}
+                isOpen={tutorOpen}
+                onClose={() => setTutorOpen(false)}
+                messages={tutorMessages}
+                onMessages={setTutorMessages}
+            />
         </div>
     );
 }

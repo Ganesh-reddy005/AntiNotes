@@ -98,7 +98,7 @@ export default function TutorPage() {
                             </div>
                             <h3 className="font-serif text-xl text-mistral-navy mb-2">Ready to think.</h3>
                             <p className="font-sans text-sm text-mistral-navy/50 max-w-sm mx-auto">
-                                I won't give you the answer. I'll ask you the right questions until you find it yourself.
+                                I won&apos;t give you the answer. I&apos;ll ask you the right questions until you find it yourself.
                             </p>
                         </motion.div>
                     )}
@@ -112,8 +112,8 @@ export default function TutorPage() {
                                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                             >
                                 <div className={`max-w-[75%] px-4 py-3 text-sm font-sans leading-relaxed ${msg.role === "user"
-                                        ? "bg-mistral-navy text-white"
-                                        : "bg-white border border-mistral-navy/10 text-mistral-navy border-l-2 border-l-mistral-orange"
+                                    ? "bg-mistral-navy text-white"
+                                    : "bg-white border border-mistral-navy/10 text-mistral-navy border-l-2 border-l-mistral-orange"
                                     }`}>
                                     {msg.role === "assistant" && (
                                         <div className="font-mono text-[10px] text-mistral-orange/70 mb-1.5 uppercase tracking-wider">Tutor</div>
@@ -161,7 +161,7 @@ export default function TutorPage() {
                     </button>
                 </div>
                 <p className="font-mono text-[10px] text-mistral-navy/30 text-center mt-2">
-                    Socratic mode — I'll guide your thinking, not give answers.
+                    Socratic mode — I&apos;ll guide your thinking, not give answers.
                 </p>
             </div>
         </div>

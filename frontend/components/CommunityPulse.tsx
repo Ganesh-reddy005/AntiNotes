@@ -15,7 +15,7 @@ export default function CommunityPulse() {
         const res = await fetch('/api/pulse');
         const data = await res.json();
         if (data.logic !== undefined) setVotes(data);
-      } catch (e) {
+      } catch {
         console.error("Failed to load pulse stats");
       }
     }
@@ -33,14 +33,14 @@ export default function CommunityPulse() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ category: type }),
       });
-      
+
       const data = await res.json();
-      
+
       if (data.success) {
         setVotes(data.counts);
         setVoted(type);
       }
-    } catch (e) {
+    } catch {
       console.error("Vote failed");
     } finally {
       setLoading(false);
@@ -55,7 +55,7 @@ export default function CommunityPulse() {
   return (
     <section className="w-full border-t border-mistral-navy/5 bg-white py-16">
       <div className="max-w-2xl mx-auto px-6 text-center">
-        
+
         <h3 className="font-serif text-2xl text-mistral-navy mb-2">
           Community Pulse
         </h3>
@@ -66,7 +66,7 @@ export default function CommunityPulse() {
         {!voted ? (
           /* VOTING BUTTONS */
           <div className="flex gap-4 justify-center">
-            <button 
+            <button
               onClick={() => handleVote('logic')}
               disabled={loading}
               className="group flex-1 max-w-[200px] p-4 rounded-xl border border-mistral-navy/10 hover:border-mistral-orange hover:bg-mistral-orange/5 transition-all flex flex-col items-center gap-3 disabled:opacity-50"
@@ -77,64 +77,64 @@ export default function CommunityPulse() {
               <span className="font-mono text-xs font-bold text-mistral-navy uppercase tracking-wider">Logic Gaps</span>
             </button>
 
-            <button 
+            <button
               onClick={() => handleVote('syntax')}
               disabled={loading}
               className="group flex-1 max-w-[200px] p-4 rounded-xl border border-mistral-navy/10 hover:border-blue-500 hover:bg-blue-50 transition-all flex flex-col items-center gap-3 disabled:opacity-50"
             >
               <div className="p-2 bg-mistral-navy/5 rounded-full group-hover:bg-blue-100 text-mistral-navy group-hover:text-blue-600 transition-colors">
-                 {loading && voted === 'syntax' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Terminal className="w-5 h-5" />}
+                {loading && voted === 'syntax' ? <Loader2 className="w-5 h-5 animate-spin" /> : <Terminal className="w-5 h-5" />}
               </div>
               <span className="font-mono text-xs font-bold text-mistral-navy uppercase tracking-wider">Syntax Errors</span>
             </button>
           </div>
         ) : (
           /* RESULTS VIEW (Live Data) */
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="w-full bg-mistral-navy/5 rounded-xl p-6 border border-mistral-navy/10"
           >
-             <div className="mb-4 flex justify-between text-xs font-mono text-mistral-navy/60 uppercase tracking-widest">
-                <span>Live Results ({total} Votes)</span>
-                <span>{voted === 'logic' ? "You picked Logic" : "You picked Syntax"}</span>
-             </div>
+            <div className="mb-4 flex justify-between text-xs font-mono text-mistral-navy/60 uppercase tracking-widest">
+              <span>Live Results ({total} Votes)</span>
+              <span>{voted === 'logic' ? "You picked Logic" : "You picked Syntax"}</span>
+            </div>
 
-             {/* Logic Bar */}
-             <div className="mb-4">
-               <div className="flex justify-between text-sm font-bold text-mistral-navy mb-1">
-                 <span>Logic Gaps</span>
-                 <span>{logicPercent}%</span>
-               </div>
-               <div className="w-full h-2 bg-white rounded-full overflow-hidden">
-                 <motion.div 
-                   initial={{ width: 0 }} 
-                   animate={{ width: `${logicPercent}%` }}
-                   transition={{ duration: 1, ease: "easeOut" }}
-                   className="h-full bg-mistral-orange" 
-                 />
-               </div>
-             </div>
+            {/* Logic Bar */}
+            <div className="mb-4">
+              <div className="flex justify-between text-sm font-bold text-mistral-navy mb-1">
+                <span>Logic Gaps</span>
+                <span>{logicPercent}%</span>
+              </div>
+              <div className="w-full h-2 bg-white rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${logicPercent}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className="h-full bg-mistral-orange"
+                />
+              </div>
+            </div>
 
-             {/* Syntax Bar */}
-             <div>
-               <div className="flex justify-between text-sm font-bold text-mistral-navy mb-1">
-                 <span>Syntax Errors</span>
-                 <span>{syntaxPercent}%</span>
-               </div>
-               <div className="w-full h-2 bg-white rounded-full overflow-hidden">
-                 <motion.div 
-                   initial={{ width: 0 }} 
-                   animate={{ width: `${syntaxPercent}%` }}
-                   transition={{ duration: 1, ease: "easeOut" }}
-                   className="h-full bg-blue-500" 
-                 />
-               </div>
-             </div>
-             
-             <p className="mt-6 text-xs text-mistral-navy/40 italic">
-               "Thanks for the signal. The Profile Agent is learning."
-             </p>
+            {/* Syntax Bar */}
+            <div>
+              <div className="flex justify-between text-sm font-bold text-mistral-navy mb-1">
+                <span>Syntax Errors</span>
+                <span>{syntaxPercent}%</span>
+              </div>
+              <div className="w-full h-2 bg-white rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${syntaxPercent}%` }}
+                  transition={{ duration: 1, ease: "easeOut" }}
+                  className="h-full bg-blue-500"
+                />
+              </div>
+            </div>
+
+            <p className="mt-6 text-xs text-mistral-navy/40 italic">
+              &quot;Thanks for the signal. The Profile Agent is learning.&quot;
+            </p>
           </motion.div>
         )}
 

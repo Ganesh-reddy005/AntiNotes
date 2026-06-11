@@ -98,7 +98,7 @@ class LearningMemoryAgent:
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.1,
-                max_tokens=600,
+                max_tokens=2000,
                 response_format={"type": "json_object"}
             )
 

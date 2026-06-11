@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { revisionApi, RevisionTopic } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { RefreshCw, Clock, CheckCircle2, Loader2, Brain, ChevronRight, Zap, LogOut } from "lucide-react";
+import { Clock, CheckCircle2, Loader2, Brain, ChevronRight, Zap, LogOut } from "lucide-react";
 
 interface RevisionCard {
     topic: RevisionTopic;
@@ -135,8 +135,8 @@ export default function RevisionPage() {
                                                 {[1, 2, 3, 4, 5].map(n => (
                                                     <button key={n} onClick={() => setRating(r => ({ ...r, [t.topic]: n * 20 }))}
                                                         className={`w-6 h-6 font-mono text-xs border transition-all ${(rating[t.topic] ?? 0) / 20 >= n
-                                                                ? "bg-mistral-navy text-white border-mistral-navy"
-                                                                : "bg-white text-mistral-navy/30 border-mistral-navy/20 hover:border-mistral-navy"
+                                                            ? "bg-mistral-navy text-white border-mistral-navy"
+                                                            : "bg-white text-mistral-navy/30 border-mistral-navy/20 hover:border-mistral-navy"
                                                             }`}>
                                                         {n}
                                                     </button>

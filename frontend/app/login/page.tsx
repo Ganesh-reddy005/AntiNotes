@@ -23,7 +23,8 @@ export default function LoginPage() {
         try {
             await login(email, password);
             router.push("/dashboard");
-        } catch (err: any) {
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { detail?: unknown } } };
             const msg = err.response?.data?.detail || "Invalid credentials";
             setError(typeof msg === "string" ? msg : JSON.stringify(msg));
             setStatus("error");
@@ -48,10 +49,10 @@ export default function LoginPage() {
 
                 <div>
                     <blockquote className="font-serif text-4xl font-medium text-white leading-tight mb-6">
-                        "Wrong answers are more valuable than correct ones."
+                        &quot;Wrong answers are more valuable than correct ones.&quot;
                     </blockquote>
                     <p className="font-sans text-white/50 text-sm max-w-xs leading-relaxed">
-                        Antinotes doesn't grade your code. It grades your thinking. Every submission reveals
+                        Antinotes doesn&apos;t grade your code. It grades your thinking. Every submission reveals
                         a pattern. Every mistake is a data point.
                     </p>
                 </div>

@@ -24,7 +24,8 @@ export default function RegisterPage() {
         try {
             await register(email, password, fullName);
             router.push("/onboarding");  // New users go to onboarding
-        } catch (err: any) {
+        } catch (e: unknown) {
+            const err = e as { response?: { data?: { detail?: unknown } } };
             const msg = err.response?.data?.detail || "Registration failed";
             setError(typeof msg === "string" ? msg : JSON.stringify(msg));
             setStatus("error");
@@ -49,7 +50,7 @@ export default function RegisterPage() {
 
                 <div>
                     <blockquote className="font-serif text-4xl font-medium text-white leading-tight mb-6">
-                        "The system continuously builds a cognitive profile of each learner."
+                        &quot;The system continuously builds a cognitive profile of each learner.&quot;
                     </blockquote>
                     <div className="flex flex-col gap-2 mt-6">
                         {["Deep code analysis", "Profile-driven explanations", "Spaced revision system"].map((point) => (

@@ -3,8 +3,18 @@ import React from 'react';
 import { motion } from "framer-motion";
 import { Terminal, ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/lib/auth";
 
 export default function Hero() {
+  const { isLoggedIn, isLoading } = useAuth();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setTimeout(() => {
+      setMounted(true);
+    }, 0);
+  }, []);
+
   const scrollToFeatures = () => {
     const el = document.getElementById("features");
     if (el) {
@@ -70,14 +80,27 @@ export default function Hero() {
           transition={{ delay: 0.8, duration: 0.6 }}
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <Link
-            href="/register"
-            className="group relative inline-flex items-center gap-3 px-8 py-4 bg-mistral-navy text-white font-mono text-sm font-bold uppercase tracking-wider border border-mistral-navy shadow-[4px_4px_0px_0px_#f97316] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#f97316] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
-          >
-            <Terminal className="w-4 h-4 text-mistral-yellow" />
-            <span>Get Started Free</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          {mounted && !isLoading && (
+            isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                className="group relative inline-flex items-center gap-3 px-8 py-4 bg-mistral-navy text-white font-mono text-sm font-bold uppercase tracking-wider border border-mistral-navy shadow-[4px_4px_0px_0px_#f97316] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#f97316] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+              >
+                <Terminal className="w-4 h-4 text-mistral-yellow" />
+                <span>Go to Dashboard</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            ) : (
+              <Link
+                href="/register"
+                className="group relative inline-flex items-center gap-3 px-8 py-4 bg-mistral-navy text-white font-mono text-sm font-bold uppercase tracking-wider border border-mistral-navy shadow-[4px_4px_0px_0px_#f97316] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_#f97316] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] transition-all"
+              >
+                <Terminal className="w-4 h-4 text-mistral-yellow" />
+                <span>Get Started Free</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            )
+          )}
 
           <button
             onClick={scrollToFeatures}
