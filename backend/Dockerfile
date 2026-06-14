@@ -18,6 +18,7 @@ COPY . .
 # Set environment variables for production
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8000
+ENV PYTHONPATH=/app
 
 # Expose port (Render uses $PORT)
 EXPOSE 8000
