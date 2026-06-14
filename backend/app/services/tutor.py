@@ -18,6 +18,8 @@ from app.models.ai_log import AILog
 from datetime import datetime
 import time
 
+from pathlib import Path
+
 # Load client
 tutor_client = AsyncOpenAI(
     api_key=settings.TUTOR_API_KEY,
@@ -25,7 +27,8 @@ tutor_client = AsyncOpenAI(
 )
 
 # Load versioned prompt (hot-reloadable on file change, not on startup)
-PROMPT_PATH = "app/agents/prompts/tutor_v1.md"
+BASE_DIR = Path(__file__).resolve().parent.parent
+PROMPT_PATH = BASE_DIR / "agents" / "prompts" / "tutor_v1.md"
 with open(PROMPT_PATH, "r") as f:
     TUTOR_PROMPT_TEMPLATE = f.read()
 
@@ -130,10 +133,21 @@ class TutorService:
                 model=settings.TUTOR_MODEL,
                 messages=messages,
                 temperature=0.4,    # Slightly creative but consistent
-                max_tokens=350      # Keep responses concise
+                max_tokens=500      # Increased slightly for safety
             )
             latency = (time.time() - start_time) * 1000
-            reply = response.choices[0].message.content
+            
+            # Handle standard content vs reasoning content (some models)
+            message = response.choices[0].message
+            reply = getattr(message, "content", None)
+            
+            # Fallback for models that might put reasoning in a different field
+            if reply is None and hasattr(message, "reasoning_content"):
+                reply = message.reasoning_content
+            
+            if reply is None:
+                print(f"[TutorService Warning] Received null content from model: {settings.TUTOR_MODEL}")
+                reply = "I'm thinking... could you say that again? I missed the last part."
 
             # 5.5 Beta Logging
             ai_log = AILog(

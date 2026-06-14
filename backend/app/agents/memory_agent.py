@@ -13,6 +13,8 @@ from datetime import datetime
 from typing import List, Optional
 from openai import AsyncOpenAI
 
+from pathlib import Path
+
 from app.core.config import settings
 from app.models.profile import Profile
 from app.models.review import Review
@@ -26,7 +28,8 @@ summary_client = AsyncOpenAI(
 )
 
 # Load versioned prompt
-PROMPT_PATH = "app/agents/prompts/memory_v1.md"
+BASE_DIR = Path(__file__).resolve().parent
+PROMPT_PATH = BASE_DIR / "prompts" / "memory_v1.md"
 with open(PROMPT_PATH, "r") as f:
     MEMORY_PROMPT_TEMPLATE = f.read()
 

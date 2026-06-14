@@ -1,5 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
+from beanie import PydanticObjectId
 # We import the Enum and TestCase from the model to avoid re-defining them
 from app.models.problem import Difficulty, TestCase
 
@@ -18,7 +19,7 @@ class ProblemCreate(ProblemBase):
 
 # Output properties (When reading)
 class ProblemRead(ProblemBase):
-    id: Optional[str] = Field(None, alias="_id")
+    id: Optional[PydanticObjectId] = Field(None, alias="_id")
     test_cases: List[TestCase]
 
     model_config = ConfigDict(

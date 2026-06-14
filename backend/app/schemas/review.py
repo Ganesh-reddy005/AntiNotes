@@ -1,5 +1,6 @@
 from typing import List
 from pydantic import BaseModel, Field
+from beanie import PydanticObjectId
 
 # ========== REVIEW SCHEMAS ==========
 
@@ -18,8 +19,9 @@ class ReviewOutput(BaseModel):
 
 class ReviewRead(ReviewOutput):
     """Response when reading a review from DB"""
-    id: str = Field(alias="_id")
+    id: PydanticObjectId = Field(alias="_id")
     review_version: str
     
     class Config:
         populate_by_name = True
+        from_attributes = True

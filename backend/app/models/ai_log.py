@@ -13,7 +13,7 @@ class AILog(Document):
     model: str
     
     prompt: str
-    response: str
+    response: Optional[str] = None
     
     # Metadata for debugging
     metadata: Dict[str, Any] = Field(default_factory=dict) # e.g., {"problem_slug": "..."}

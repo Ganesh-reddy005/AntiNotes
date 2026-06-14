@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useDragControls } from "framer-motion";
 import { tutorApi } from "@/lib/api";
 import {
     MessageSquare, X, Minus, Maximize2, Send, Loader2, Terminal, GripVertical
@@ -33,11 +33,9 @@ export default function FloatingTutor({
     const [input, setInput] = useState("");
     const [thinking, setThinking] = useState(false);
     const [winState, setWinState] = useState<WindowState>("normal");
-    const [position, setPosition] = useState({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = useState(false);
-    const dragStartRef = useRef<{ mx: number; my: number; px: number; py: number } | null>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const dragControls = useDragControls();
 
     // Auto-scroll to bottom on new messages
     useEffect(() => {
@@ -70,39 +68,16 @@ export default function FloatingTutor({
                 history: history.slice(0, -1),
                 session_id: sessionId,
             });
-            onMessages([...updated, { role: "assistant", content: res.data.reply }]);
+            
+            // Check if reply is empty (safety fallback)
+            const reply = res.data.reply || "I'm processing that. Could you rephrase your question?";
+            onMessages([...updated, { role: "assistant", content: reply }]);
         } catch {
             onMessages([...updated, { role: "assistant", content: "Something went wrong. Try again." }]);
         } finally {
             setThinking(false);
         }
     }, [input, thinking, problemSlug, messages, onMessages, sessionId]);
-
-    // ── Drag logic ──────────────────────────────────────────────────────────────
-    const onDragStart = useCallback((e: React.MouseEvent) => {
-        if (winState === "maximized") return;
-        setIsDragging(true);
-        dragStartRef.current = { mx: e.clientX, my: e.clientY, px: position.x, py: position.y };
-        e.preventDefault();
-    }, [winState, position]);
-
-    useEffect(() => {
-        if (!isDragging) return;
-        const onMove = (e: MouseEvent) => {
-            if (!dragStartRef.current) return;
-            setPosition({
-                x: dragStartRef.current.px + (e.clientX - dragStartRef.current.mx),
-                y: dragStartRef.current.py + (e.clientY - dragStartRef.current.my),
-            });
-        };
-        const onUp = () => setIsDragging(false);
-        window.addEventListener("mousemove", onMove);
-        window.addEventListener("mouseup", onUp);
-        return () => {
-            window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", onUp);
-        };
-    }, [isDragging]);
 
     const unreadCount = messages.filter(m => m.role === "assistant").length;
 
@@ -114,38 +89,35 @@ export default function FloatingTutor({
                 ? "w-64 h-12"
                 : "w-[380px] h-[520px]";
 
-    const transformStyle =
-        winState === "maximized"
-            ? {}
-            : { transform: `translate(${position.x}px, ${position.y}px)` };
-
     if (!isOpen) return null;
 
     return (
         <AnimatePresence>
             <motion.div
                 key="floating-tutor"
+                drag={winState === "normal"}
+                dragControls={dragControls}
+                dragListener={false}
+                dragMomentum={false}
                 initial={{ opacity: 0, scale: 0.92, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.92, y: 20 }}
                 transition={{ type: "spring", stiffness: 380, damping: 32 }}
-                style={transformStyle}
                 className={`
                     fixed bottom-6 right-6 z-50 flex flex-col
                     bg-white border border-mistral-navy/15
                     shadow-[6px_6px_0px_0px_rgba(15,23,42,0.12)]
-                    overflow-hidden select-none
+                    overflow-hidden
                     ${sizeClass}
-                    ${winState === "maximized" ? "" : ""}
                 `}
             >
-                {/* ── Title bar ── */}
+                {/* ── Title bar (Drag Handle) ── */}
                 <div
-                    onMouseDown={onDragStart}
+                    onPointerDown={(e) => dragControls.start(e)}
                     className={`
                         flex-shrink-0 flex items-center gap-2 px-3 py-2.5
                         bg-mistral-navy text-white border-b border-white/10
-                        ${winState !== "maximized" ? "cursor-grab active:cursor-grabbing" : "cursor-default"}
+                        ${winState === "normal" ? "cursor-grab active:cursor-grabbing" : "cursor-default"}
                     `}
                 >
                     {/* Drag handle */}
@@ -191,7 +163,7 @@ export default function FloatingTutor({
                 {winState !== "minimized" && (
                     <>
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto px-3 py-4 bg-mistral-bg">
+                        <div className="flex-1 overflow-y-auto px-3 py-4 bg-mistral-bg scroll-smooth">
                             <div className="flex flex-col gap-3">
                                 {messages.length === 0 && (
                                     <motion.div
@@ -203,7 +175,7 @@ export default function FloatingTutor({
                                             <Terminal className="w-5 h-5 text-mistral-yellow" />
                                         </div>
                                         <p className="font-serif text-sm text-mistral-navy mb-1">Ready to guide you.</p>
-                                        <p className="font-sans text-xs text-mistral-navy/50 px-4">
+                                        <p className="font-sans text-xs text-mistral-navy/50 px-4 text-balance">
                                             I won&apos;t give you the answer — I&apos;ll ask the right questions.
                                         </p>
                                     </motion.div>
@@ -221,8 +193,8 @@ export default function FloatingTutor({
                                                 className={`
                                                     max-w-[85%] px-3 py-2 text-xs font-sans leading-relaxed
                                                     ${msg.role === "user"
-                                                        ? "bg-mistral-navy text-white"
-                                                        : "bg-white border border-mistral-navy/10 text-mistral-navy border-l-2 border-l-mistral-orange"
+                                                        ? "bg-mistral-navy text-white shadow-sm"
+                                                        : "bg-white border border-mistral-navy/10 text-mistral-navy border-l-2 border-l-mistral-orange shadow-sm"
                                                     }
                                                 `}
                                             >
@@ -243,7 +215,7 @@ export default function FloatingTutor({
                                             animate={{ opacity: 1 }}
                                             className="flex justify-start"
                                         >
-                                            <div className="bg-white border border-mistral-navy/10 border-l-2 border-l-mistral-orange px-3 py-2">
+                                            <div className="bg-white border border-mistral-navy/10 border-l-2 border-l-mistral-orange px-3 py-2 shadow-sm">
                                                 <div className="font-mono text-[9px] text-mistral-orange/70 mb-1.5 uppercase tracking-wider">
                                                     Tutor
                                                 </div>

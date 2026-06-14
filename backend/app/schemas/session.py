@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
 from datetime import datetime
+from beanie import PydanticObjectId
 from app.models.session import Role, MessageType, SessionStatus
 
 # Base Message structure
@@ -23,7 +24,7 @@ class SessionCreate(BaseModel):
 
 # Output: Session status
 class SessionRead(BaseModel):
-    id: str = Field(alias="_id")
+    id: PydanticObjectId = Field(alias="_id")
     status: SessionStatus
     messages: List[MessageRead]
     created_at: datetime

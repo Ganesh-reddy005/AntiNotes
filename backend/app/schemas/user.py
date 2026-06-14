@@ -1,5 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, EmailStr, Field
+from beanie import PydanticObjectId
 from uuid import UUID
 
 # Shared properties
@@ -16,9 +17,9 @@ class UserCreate(UserBase):
 
 # Properties to return to client (Read-only)
 class UserRead(UserBase):
-    id: str = Field(alias="_id") # Map MongoDB _id to id
+    id: PydanticObjectId = Field(alias="_id") # Map MongoDB _id to id
     logic_elo: int
-    
+
     class Config:
         from_attributes = True # Allow Pydantic to read from Beanie models
 

@@ -10,6 +10,8 @@ from app.models.ai_log import AILog
 from app.schemas.review import ReviewOutput
 import time
 
+from pathlib import Path
+
 # Initialize Client
 review_client = AsyncOpenAI(
     api_key=settings.REVIEW_API_KEY,
@@ -17,7 +19,8 @@ review_client = AsyncOpenAI(
 )
 
 # Load Prompt Template
-PROMPT_PATH = "app/agents/prompts/reviewer_v1.md"
+BASE_DIR = Path(__file__).resolve().parent
+PROMPT_PATH = BASE_DIR / "prompts" / "reviewer_v1.md"
 with open(PROMPT_PATH, "r") as f:
     REVIEWER_PROMPT_TEMPLATE = f.read()
 

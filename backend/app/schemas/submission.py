@@ -1,5 +1,6 @@
 from typing import Dict, Optional
 from pydantic import BaseModel, Field
+from beanie import PydanticObjectId
 
 # ========== SUBMISSION SCHEMAS ==========
 
@@ -11,7 +12,7 @@ class SubmissionCreate(BaseModel):
 
 class SubmissionRead(BaseModel):
     """Output when reading a submission"""
-    id: str = Field(alias="_id")
+    id: PydanticObjectId = Field(alias="_id")
     code: str
     language: str
     test_results: Dict
@@ -20,3 +21,4 @@ class SubmissionRead(BaseModel):
     
     class Config:
         populate_by_name = True
+        from_attributes = True
