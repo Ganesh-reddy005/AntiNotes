@@ -251,7 +251,6 @@ yarn-error.log*
 *.pt
 *.pth
 *.onnx
-models/
 checkpoints/
 
 # === Backup files ===
