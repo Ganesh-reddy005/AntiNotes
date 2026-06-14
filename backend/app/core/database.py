@@ -15,9 +15,11 @@ from app.models.ai_log import AILog
 
 async def init_db():
     try:
+        # Create client and get database
         client = AsyncIOMotorClient(settings.MONGODB_URI)
-        database = client.get_database(settings.DB_NAME)
+        database = client[settings.DB_NAME]
 
+        # Initialize Beanie
         await init_beanie(
             database=database,
             document_models=[
@@ -32,7 +34,7 @@ async def init_db():
                 AILog
             ],
         )
-        print(f"✅ Database Connected: {settings.DB_NAME}")
+        print(f"✅ Beanie Initialized. Connected to: {settings.DB_NAME}")
     except Exception as e:
-        print(f"❌ MongoDB Connection Error: {e}")
+        print(f"❌ MongoDB/Beanie Error: {e}")
         raise e
