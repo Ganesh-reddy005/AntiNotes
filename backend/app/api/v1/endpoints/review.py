@@ -13,6 +13,7 @@ from app.models.problem import Problem
 from app.models.submission import Submission
 from app.models.review import Review
 from app.models.profile import Profile
+from app.models.learning_memory import LearningMemory
 from app.agents.reviewer import ReviewerAgent
 from app.agents.revision import RevisionAgent
 from app.agents.memory_agent import LearningMemoryAgent
@@ -170,11 +171,17 @@ async def review_submission(
     )
     await submission.insert()
 
+    # 3.5 Fetch Memory for Context
+    memory = await LearningMemory.find(
+        LearningMemory.user.id == current_user.id
+    ).sort("-created_at").first_or_none()
+
     # 4. Run AI Reviewer
     ai_result = await ReviewerAgent.analyze_submission(
         submission=submission,
         problem=problem,
-        user_profile=profile
+        user_profile=profile,
+        memory=memory
     )
 
     # 5. Save Review (with code hash for deduplication)

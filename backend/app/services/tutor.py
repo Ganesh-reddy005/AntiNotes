@@ -13,7 +13,10 @@ from app.core.config import settings
 from app.models.problem import Problem
 from app.models.profile import Profile
 from app.models.session import Session, Message, Role, MessageType
+from app.models.learning_memory import LearningMemory
+from app.models.ai_log import AILog
 from datetime import datetime
+import time
 
 # Load client
 tutor_client = AsyncOpenAI(
@@ -71,6 +74,19 @@ class TutorService:
         if not problem:
             return "I can't find that problem. Try refreshing the page."
 
+        # 1.5 Fetch latest learning memory for deeper context
+        memory = await LearningMemory.find(
+            LearningMemory.user.id == profile.user.ref.id
+        ).sort("-created_at").first_or_none()
+        
+        memory_context = "No long-term memory records yet."
+        if memory:
+            memory_context = (
+                f"Progress Summary: {memory.summary}\n"
+                f"Key Breakthroughs: {', '.join(memory.key_breakthroughs)}\n"
+                f"Persistent Struggles: {', '.join(memory.persistent_struggles)}"
+            )
+
         # 2. Extract profile context (token-optimized slices)
         skill_level = profile.skill_level
         primary_language = profile.primary_language
@@ -97,6 +113,7 @@ class TutorService:
             thinking_style=thinking_style,
             teaching_style_instruction=teaching_style_instruction,
             additional_context=additional_context,
+            memory_context=memory_context,
             problem_title=problem.title,
             problem_description=problem.description[:500]  # Token limit
         )
@@ -107,6 +124,7 @@ class TutorService:
         messages.append({"role": "user", "content": user_question})
 
         try:
+            start_time = time.time()
             # 5. Call LLM
             response = await tutor_client.chat.completions.create(
                 model=settings.TUTOR_MODEL,
@@ -114,7 +132,21 @@ class TutorService:
                 temperature=0.4,    # Slightly creative but consistent
                 max_tokens=350      # Keep responses concise
             )
+            latency = (time.time() - start_time) * 1000
             reply = response.choices[0].message.content
+
+            # 5.5 Beta Logging
+            ai_log = AILog(
+                user=profile.user,
+                agent_name="tutor",
+                model=settings.TUTOR_MODEL,
+                prompt=messages[-1]["content"],
+                response=reply,
+                metadata={"problem_slug": problem_slug, "history_len": len(chat_history)},
+                tokens_used=response.usage.total_tokens if response.usage else 0,
+                latency_ms=latency
+            )
+            await ai_log.insert()
 
             # 6. Persist to session if given
             if session:

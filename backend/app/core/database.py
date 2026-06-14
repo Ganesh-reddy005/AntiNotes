@@ -11,10 +11,11 @@ from app.models.submission import Submission
 from app.models.review import Review
 from app.models.learning_memory import LearningMemory
 from app.models.revision import Revision
+from app.models.ai_log import AILog
 
 async def init_db():
     client = AsyncIOMotorClient(settings.MONGODB_URI)
-    
+
     await init_beanie(
         database=client[settings.DB_NAME],
         document_models=[
@@ -25,6 +26,7 @@ async def init_db():
             Submission,
             Review,
             LearningMemory,
-            Revision    
+            Revision,
+            AILog
         ],
     )

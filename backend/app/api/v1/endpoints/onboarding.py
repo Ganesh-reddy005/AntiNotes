@@ -38,16 +38,8 @@ async def submit_onboarding(
     # --- Onboarding complete ---
     profile.onboarding_completed = True
 
-    # --- Seed known_concepts based on skill level ---
-    if form.coding_level == "beginner":
-        profile.known_concepts = ["variables", "loops", "conditionals", "functions", "lists"]
-    elif form.coding_level == "intermediate":
-        profile.known_concepts = ["arrays", "strings", "hash_tables", "recursion", "sorting", "binary_search"]
-    else:  # advanced
-        profile.known_concepts = [
-            "algorithms", "data_structures", "dynamic_programming",
-            "graphs", "trees", "greedy", "backtracking", "bit_manipulation"
-        ]
+    # --- Initialize known_concepts as empty (they grow based on submissions) ---
+    profile.known_concepts = []
 
     # Save (insert if new, update if existing)
     if profile.id:

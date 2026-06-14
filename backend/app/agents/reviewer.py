@@ -5,7 +5,10 @@ from app.core.config import settings
 from app.models.problem import Problem
 from app.models.submission import Submission
 from app.models.profile import Profile
+from app.models.learning_memory import LearningMemory
+from app.models.ai_log import AILog
 from app.schemas.review import ReviewOutput
+import time
 
 # Initialize Client
 review_client = AsyncOpenAI(
@@ -60,7 +63,8 @@ class ReviewerAgent:
     async def analyze_submission(
         submission: Submission,
         problem: Problem,
-        user_profile: Profile
+        user_profile: Profile,
+        memory: Optional[LearningMemory] = None
     ) -> ReviewOutput:
         
         # 1. Extract Profile Context
@@ -68,6 +72,15 @@ class ReviewerAgent:
         style = user_profile.preferred_explanation_style or "socratic"
         goal = user_profile.goal or "get_job"
         
+        # 1.5 Extract Memory Context
+        memory_context = "No long-term memory records yet."
+        if memory:
+            memory_context = (
+                f"Progress Summary: {memory.summary}\n"
+                f"Key Breakthroughs: {', '.join(memory.key_breakthroughs)}\n"
+                f"Persistent Struggles: {', '.join(memory.persistent_struggles)}"
+            )
+
         # 2. Extract Deep Context (Lists)
         # We slice lists to prevent token overflow (Money Saving)
         known = user_profile.known_concepts[-10:] if user_profile.known_concepts else ["basics"]
@@ -96,6 +109,7 @@ class ReviewerAgent:
             known_concepts=", ".join(known),
             recent_weaknesses=", ".join(weaknesses),
             common_mistakes=", ".join(mistakes),
+            memory_context=memory_context,
             problem_title=problem.title,
             test_results=test_summary,
             code=submission.code[:3000],  # Limit to 3000 chars to save tokens
@@ -103,6 +117,7 @@ class ReviewerAgent:
         )
 
         try:
+            start_time = time.time()
             # 5. Call LLM
             response = await review_client.chat.completions.create(
                 model=settings.REVIEW_MODEL,
@@ -117,11 +132,25 @@ class ReviewerAgent:
                 max_tokens=3000,
                 response_format={"type": "json_object"}
             )
+            latency = (time.time() - start_time) * 1000
 
             # 6. Parse Response
             content = response.choices[0].message.content
             review_data = json.loads(content)
             
+            # 6.5 Beta Logging
+            ai_log = AILog(
+                user=user_profile.user,
+                agent_name="reviewer",
+                model=settings.REVIEW_MODEL,
+                prompt=prompt[:5000], # Reviewer prompts can be long, but let's log them
+                response=content,
+                metadata={"problem_title": problem.title, "submission_id": str(submission.id)},
+                tokens_used=response.usage.total_tokens if response.usage else 0,
+                latency_ms=latency
+            )
+            await ai_log.insert()
+
             # 7. Return Validated Pydantic Object
             return ReviewOutput(**review_data)
 
