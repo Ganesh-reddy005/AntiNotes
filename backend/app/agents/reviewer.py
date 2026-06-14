@@ -148,7 +148,7 @@ class ReviewerAgent:
                 model=settings.REVIEW_MODEL,
                 prompt=prompt[:5000], # Reviewer prompts can be long, but let's log them
                 response=content,
-                metadata={"problem_title": problem.title, "submission_id": str(submission.id)},
+                context_data={"problem_title": problem.title, "submission_id": str(submission.id)},
                 tokens_used=response.usage.total_tokens if response.usage else 0,
                 latency_ms=latency
             )

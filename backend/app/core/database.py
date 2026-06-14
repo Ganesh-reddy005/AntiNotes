@@ -14,21 +14,12 @@ from app.models.revision import Revision
 from app.models.ai_log import AILog
 
 async def init_db():
-    print(f"🔗 Connecting to MongoDB: {settings.MONGODB_URI[:20]}...")
     try:
-        # Add serverSelectionTimeoutMS to prevent hanging on connection issues
-        client = AsyncIOMotorClient(
-            settings.MONGODB_URI,
-            serverSelectionTimeoutMS=5000,
-            connectTimeoutMS=10000
-        )
-
-        # Verify connection
-        await client.admin.command('ping')
-        print("✅ MongoDB Ping successful.")
+        client = AsyncIOMotorClient(settings.MONGODB_URI)
+        database = client.get_database(settings.DB_NAME)
 
         await init_beanie(
-            database=client[settings.DB_NAME],
+            database=database,
             document_models=[
                 User,
                 Problem,
@@ -41,7 +32,7 @@ async def init_db():
                 AILog
             ],
         )
+        print(f"✅ Database Connected: {settings.DB_NAME}")
     except Exception as e:
         print(f"❌ MongoDB Connection Error: {e}")
-        # In production, we might want to raise this to fail the health check
         raise e

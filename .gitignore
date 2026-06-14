@@ -278,3 +278,5 @@ frontend/.env.local
 problems.jsonl
 
 ANTI_NOTES_DEV.md
+
+.axon

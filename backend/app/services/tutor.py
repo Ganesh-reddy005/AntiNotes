@@ -156,7 +156,7 @@ class TutorService:
                 model=settings.TUTOR_MODEL,
                 prompt=messages[-1]["content"],
                 response=reply,
-                metadata={"problem_slug": problem_slug, "history_len": len(chat_history)},
+                context_data={"problem_slug": problem_slug, "history_len": len(chat_history)},
                 tokens_used=response.usage.total_tokens if response.usage else 0,
                 latency_ms=latency
             )

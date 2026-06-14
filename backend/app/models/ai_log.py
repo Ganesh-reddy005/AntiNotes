@@ -15,8 +15,8 @@ class AILog(Document):
     prompt: str
     response: Optional[str] = None
     
-    # Metadata for debugging
-    metadata: Dict[str, Any] = Field(default_factory=dict) # e.g., {"problem_slug": "..."}
+    # Context for debugging
+    context_data: Dict[str, Any] = Field(default_factory=dict) # e.g., {"problem_slug": "..."}
     tokens_used: Optional[int] = None
     latency_ms: Optional[float] = None
     
