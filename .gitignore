@@ -198,7 +198,7 @@ logs/
 # *.json  <-- Removed this to prevent ignoring vercel.json and other configs
 *.jsonl
 # Whitelist specific files if needed:
-!vercel.json
+
 
 # === Temporary Files ===
 *.tmp
