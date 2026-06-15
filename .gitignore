@@ -23,13 +23,13 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+# build/  <-- Removed to prevent ignoring frontend/build if needed, or other subdirectories
 develop-eggs/
 dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/  <-- Removed as it's too broad and ignores frontend/lib
 lib64/
 parts/
 sdist/
