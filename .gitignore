@@ -195,10 +195,10 @@ logs/
 
 # Other large data files
 *.csv
-*.json
+# *.json  <-- Removed this to prevent ignoring vercel.json and other configs
 *.jsonl
 # Whitelist specific files if needed:
-# !important-file.json
+!vercel.json
 
 # === Temporary Files ===
 *.tmp
