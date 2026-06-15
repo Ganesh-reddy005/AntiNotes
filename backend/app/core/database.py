@@ -18,6 +18,13 @@ async def init_db():
         # Create client and get database
         client = AsyncIOMotorClient(settings.MONGODB_URI)
         database = client[settings.DB_NAME]
+        
+        # --- TELEMETRY GUARD (Monkeypatch) ---
+        # Defuses the conflict where Beanie tries to call a non-existent 
+        # 'append_metadata' method on the Motor client.
+        if not hasattr(client, "append_metadata") or not callable(getattr(client, "append_metadata")):
+            client.append_metadata = lambda x: None
+        # -------------------------------------
 
         # Initialize Beanie
         await init_beanie(
