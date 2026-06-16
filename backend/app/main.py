@@ -38,7 +38,7 @@ app.add_middleware(
 )
 
 # 4. Health Check Endpoint
-@app.get("/")
+@app.get("/", methods=["GET", "HEAD"])
 async def root():
     return {
         "status": "online",

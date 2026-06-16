@@ -9,7 +9,7 @@ from app.schemas.problem import ProblemCreate, ProblemRead
 
 router = APIRouter()
 
-@router.get("/")
+@router.get("/", methods=["GET", "HEAD"])
 async def list_problems():
     """Get all problems"""
     problems = await ProblemModel.find_all().to_list()
