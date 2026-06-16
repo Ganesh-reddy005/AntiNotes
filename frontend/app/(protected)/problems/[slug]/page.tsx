@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { problemsApi, reviewApi, sessionApi, Problem, Review, userApi } from "@/lib/api";
+import { generateBoilerplate } from "@/lib/boilerplate";
 import FloatingTutor, { TutorMessage } from "@/components/FloatingTutor";
 
 import {
@@ -164,10 +165,14 @@ export default function ProblemSolvePage() {
                     userApi.profile().catch(() => null),
                 ]);
                 setProblem(pRes.data);
-                setCode(pRes.data.starter_code || "");
-                if (profRes) {
-                    setLanguage(LANG_MAP[profRes.data.primary_language] || "python");
-                }
+                
+                // Determine initial language (from profile or default to python)
+                const initialLang = profRes ? (LANG_MAP[profRes.data.primary_language] || "python") : "python";
+                setLanguage(initialLang);
+                
+                // Generate boilerplate for the initial language
+                const initialCode = generateBoilerplate(pRes.data.starter_code || "", initialLang, pRes.data.title);
+                setCode(initialCode);
             } catch {
                 setError("Problem not found");
             } finally {
@@ -175,6 +180,15 @@ export default function ProblemSolvePage() {
             }
         })();
     }, [slug]);
+
+    const handleLanguageChange = (newLang: string) => {
+        setLanguage(newLang);
+        if (problem) {
+            // Regenerate boilerplate when language changes
+            const newBoilerplate = generateBoilerplate(problem.starter_code, newLang, problem.title);
+            setCode(newBoilerplate);
+        }
+    };
 
     const handleSubmit = async () => {
         if (!problem || submitting) return;
@@ -261,7 +275,7 @@ export default function ProblemSolvePage() {
                     ))}
                 </div>
                 <div className="ml-auto flex items-center gap-2">
-                    <select value={language} onChange={e => setLanguage(e.target.value)}
+                    <select value={language} onChange={e => handleLanguageChange(e.target.value)}
                         className="font-mono text-xs bg-white border border-mistral-navy/20 text-mistral-navy px-2 py-1 focus:outline-none focus:border-mistral-navy">
                         {Object.keys(LANG_MAP).map(l => <option key={l} value={l}>{l}</option>)}
                     </select>
