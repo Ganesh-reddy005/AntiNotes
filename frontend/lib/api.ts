@@ -129,24 +129,24 @@ export interface LearningMemory {
 // Auth
 export const authApi = {
     register: (data: { email: string; password: string; full_name: string }) =>
-        api.post<{ access_token: string; token_type: string; user: User }>("/auth/register", data),
+        api.post<{ access_token: string; token_type: string; user: User }>("auth/register", data),
     login: (email: string, password: string) =>
         api.post<{ access_token: string; token_type: string; user: User }>(
-            "/auth/login",
+            "auth/login",
             new URLSearchParams({ username: email, password }),
             { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
         ),
-    me: () => api.get<User>("/auth/me"),
+    me: () => api.get<User>("auth/me"),
 };
 
 // Users & Profile
 export const userApi = {
-    me: () => api.get<User>("/users/me"),
-    profile: () => api.get<Profile>("/users/me/profile"),
-    updateProfile: (data: Partial<Profile>) => api.put<{ message: string }>("/users/me/profile", data),
-    history: () => api.get<SubmissionHistory[]>("/users/me/history"),
-    recommended: () => api.get<Problem[]>("/users/me/recommended"),
-    memory: () => api.get<LearningMemory | null>("/users/me/memory"),
+    me: () => api.get<User>("users/me"),
+    profile: () => api.get<Profile>("users/me/profile"),
+    updateProfile: (data: Partial<Profile>) => api.put<{ message: string }>("users/me/profile", data),
+    history: () => api.get<SubmissionHistory[]>("users/me/history"),
+    recommended: () => api.get<Problem[]>("users/me/recommended"),
+    memory: () => api.get<LearningMemory | null>("users/me/memory"),
 };
 
 // Onboarding
@@ -158,14 +158,14 @@ export const onboardingApi = {
         primary_language: string;
         background?: string;
         additional_context?: string;
-    }) => api.post("/onboarding/submit", data),
+    }) => api.post("onboarding/submit", data),
 };
 
 // Problems
 export const problemsApi = {
     list: (params?: { difficulty?: string; tag?: string }) =>
-        api.get<Problem[]>("/problems/", { params }),
-    get: (slug: string) => api.get<Problem>(`/problems/${slug}`),
+        api.get<Problem[]>("problems/", { params }),
+    get: (slug: string) => api.get<Problem>(`problems/${slug}`),
 };
 
 // Review
@@ -175,14 +175,14 @@ export const reviewApi = {
         code: string;
         language: string;
         test_results?: string;
-    }) => api.post<Review>("/review/", data),
+    }) => api.post<Review>("review/", data),
 };
 
 // Sessions
 export const sessionApi = {
     create: (problem_slug: string) =>
-        api.post<{ id: string; status: string }>("/sessions/", { problem_slug }),
-    get: (id: string) => api.get(`/sessions/${id}`),
+        api.post<{ id: string; status: string }>("sessions/", { problem_slug }),
+    get: (id: string) => api.get(`sessions/${id}`),
 };
 
 // Tutor
@@ -192,13 +192,13 @@ export const tutorApi = {
         user_message: string;
         history: { role: string; content: string }[];
         session_id?: string;
-    }) => api.post<{ reply: string }>("/tutor/ask", data),
+    }) => api.post<{ reply: string }>("tutor/ask", data),
 };
 
 // Revision
 export const revisionApi = {
-    due: () => api.get<RevisionTopic[]>("/revision/due"),
-    suggestions: () => api.get<RevisionTopic[]>("/revision/suggestions"),
+    due: () => api.get<RevisionTopic[]>("revision/due"),
+    suggestions: () => api.get<RevisionTopic[]>("revision/suggestions"),
     markRevised: (topic: string, data: { success: boolean; score: number; time_spent_minutes: number }) =>
-        api.post(`/revision/mark-revised/${encodeURIComponent(topic)}`, data),
+        api.post(`revision/mark-revised/${encodeURIComponent(topic)}`, data),
 };
