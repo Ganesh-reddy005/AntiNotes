@@ -6,8 +6,12 @@ import axios from "axios";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-// Ensure the base URL ends with a slash so relative paths append correctly
-const baseURL = API_BASE.endsWith("/") ? API_BASE : `${API_BASE}/`;
+// Ensure the base URL includes /api/v1 and ends with a slash
+let normalizedBase = API_BASE;
+if (!normalizedBase.includes("/api/v1")) {
+    normalizedBase = normalizedBase.endsWith("/") ? `${normalizedBase}api/v1` : `${normalizedBase}/api/v1`;
+}
+const baseURL = normalizedBase.endsWith("/") ? normalizedBase : `${normalizedBase}/`;
 
 const api = axios.create({
     baseURL: baseURL,
