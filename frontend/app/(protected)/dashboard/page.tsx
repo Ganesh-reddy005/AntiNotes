@@ -4,11 +4,11 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import {
-    userApi, revisionApi,
-    Profile, Problem, RevisionTopic, SubmissionHistory, LearningMemory
+    userApi, revisionApi, roadmapApi,
+    Profile, Problem, RevisionTopic, SubmissionHistory, LearningMemory, Roadmap
 } from "@/lib/api";
 import {
-    Clock, BarChart2, BookOpen, Code2, Flame, Target, Zap, ChevronRight
+    Clock, BarChart2, BookOpen, Code2, Flame, Target, Zap, ChevronRight, Map
 } from "lucide-react";
 
 // Local components
@@ -30,22 +30,27 @@ export default function DashboardPage() {
     const [recommended, setRecommended] = useState<Problem[]>([]);
     const [history, setHistory] = useState<SubmissionHistory[]>([]);
     const [memory, setMemory] = useState<LearningMemory | null>(null);
+    const [featuredRoadmap, setFeaturedRoadmap] = useState<Roadmap | null>(null);
     const [loading, setLoading] = useState(true);
 
     const fetchData = async () => {
         try {
-            const [profileRes, dueRes, recRes, histRes, memRes] = await Promise.all([
+            const [profileRes, dueRes, recRes, histRes, memRes, roadmapRes] = await Promise.all([
                 userApi.profile().catch(() => ({ data: null })),
                 revisionApi.due().catch(() => ({ data: [] as RevisionTopic[] })),
                 userApi.recommended().catch(() => ({ data: [] as Problem[] })),
                 userApi.history().catch(() => ({ data: [] as SubmissionHistory[] })),
                 userApi.memory().catch(() => ({ data: null })),
+                roadmapApi.list().catch(() => ({ data: [] as Roadmap[] })),
             ]);
             if (profileRes.data) setProfile(profileRes.data as Profile);
             setDueTopics((dueRes.data as RevisionTopic[]).slice(0, 3));
             setRecommended((recRes.data as Problem[]).slice(0, 4));
             setHistory(histRes.data as SubmissionHistory[]);
             setMemory(memRes.data as LearningMemory | null);
+            
+            const roadmaps = roadmapRes.data as Roadmap[];
+            setFeaturedRoadmap(roadmaps.find(r => r.is_featured) || roadmaps[0] || null);
         } catch {
             /* unexpected error */
         } finally {
@@ -116,6 +121,30 @@ export default function DashboardPage() {
                     <StatCard icon={Target} label="Reviews" value={liveReviews} />
                     <StatCard icon={BarChart2} label="Avg Score" value={avgScore > 0 ? `${avgScore}` : "—"} sub="across all reviews" />
                 </motion.div>
+
+                {/* Featured Roadmap Banner */}
+                {featuredRoadmap && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+                        <Link href="/roadmaps" 
+                            className="flex flex-col md:flex-row items-center justify-between gap-6 bg-mistral-navy p-8 border border-mistral-navy hover:shadow-[8px_8px_0px_0px_#f97316] transition-all group">
+                            <div className="space-y-2 text-left w-full">
+                                <div className="flex items-center gap-2">
+                                    <Map className="w-4 h-4 text-mistral-orange" />
+                                    <span className="font-mono text-[10px] text-white/50 uppercase tracking-widest">Recommended Path</span>
+                                </div>
+                                <h2 className="font-serif text-2xl md:text-3xl text-white group-hover:text-mistral-orange transition-colors">
+                                    {featuredRoadmap.title}
+                                </h2>
+                                <p className="font-sans text-white/60 text-sm max-w-xl">
+                                    {featuredRoadmap.description}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-2 bg-mistral-orange text-white px-6 py-3 font-mono text-sm font-bold group-hover:bg-white group-hover:text-mistral-navy transition-all flex-shrink-0">
+                                Start Learning <ChevronRight className="w-4 h-4" />
+                            </div>
+                        </Link>
+                    </motion.div>
+                )}
 
                 {/* Main grid */}
                 <div className="grid lg:grid-cols-3 gap-6">

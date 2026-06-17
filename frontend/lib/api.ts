@@ -133,6 +133,35 @@ export interface LearningMemory {
     created_at: string;
 }
 
+export interface Topic {
+    slug: string;
+    title: string;
+    description: string;
+    content?: string;
+    prerequisites: string[];
+    problems: string[];
+    order: number;
+}
+
+export interface Roadmap {
+    slug: string;
+    title: string;
+    description: string;
+    topics: string[];
+    is_featured: boolean;
+}
+
+export interface RoadmapDetail extends Roadmap {
+    topic_details: Topic[];
+}
+
+export interface InteractiveWidget {
+    widget_id: string;
+    topic_slug: string;
+    type: "mcq" | "code_tabs" | "live_editor";
+    data: any;
+}
+
 // Auth
 export const authApi = {
     register: (data: { email: string; password: string; full_name: string }) =>
@@ -173,6 +202,16 @@ export const problemsApi = {
     list: (params?: { difficulty?: string; tag?: string }) =>
         api.get<Problem[]>("problems/", { params }),
     get: (slug: string) => api.get<Problem>(`problems/${slug}`),
+    execute: (language: string, code: string) => 
+        api.post("problems/execute", { language, code }),
+};
+
+// Roadmap
+export const roadmapApi = {
+    list: () => api.get<Roadmap[]>("roadmap/roadmaps"),
+    get: (slug: string) => api.get<RoadmapDetail>(`roadmap/roadmaps/${slug}`),
+    getTopic: (slug: string) => api.get<Topic>(`roadmap/topics/${slug}`),
+    getWidgets: (slug: string) => api.get<InteractiveWidget[]>(`roadmap/topics/${slug}/widgets`),
 };
 
 // Review

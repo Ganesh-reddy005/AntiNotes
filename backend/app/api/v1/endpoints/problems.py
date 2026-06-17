@@ -1,39 +1,39 @@
-from typing import List
-from fastapi import APIRouter, HTTPException
-
-# 1. Import the DB Model explicitly
-from app.models.problem import Problem as ProblemModel 
-
-# 2. Import the Pydantic Schemas
-from app.schemas.problem import ProblemCreate, ProblemRead
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
+from typing import List, Optional
+from app.services.piston_service import CodeExecutionService
+from app.models.problem import Problem, Difficulty
 
 router = APIRouter()
 
-@router.api_route("/", methods=["GET", "HEAD"])
-async def list_problems():
-    """Get all problems"""
-    problems = await ProblemModel.find_all().to_list()
-    return problems
+class ExecuteRequest(BaseModel):
+    language: str
+    code: str
 
-@router.post("/")
-async def create_problem(problem_in: ProblemCreate):
-    # 3. Use ProblemModel for database queries
-    existing = await ProblemModel.find_one(ProblemModel.slug == problem_in.slug)
-    if existing:
-        raise HTTPException(status_code=400, detail="Slug already exists")
+@router.get("/", response_model=List[Problem])
+async def list_problems(
+    difficulty: Optional[Difficulty] = None,
+    tag: Optional[str] = None
+):
+    query = {}
+    if difficulty:
+        query["difficulty"] = difficulty
+    if tag:
+        query["tags"] = tag
     
-    # 4. create the document
-    # Note: We dump the Pydantic object to a dict to pass it to the Model
-    problem = ProblemModel(**problem_in.model_dump())
-    await problem.insert()
-    
-    return problem
+    return await Problem.find(query).to_list()
 
-@router.get("/{slug}")
+@router.get("/{slug}", response_model=Problem)
 async def get_problem(slug: str):
-    # Use ProblemModel here too
-    problem = await ProblemModel.find_one(ProblemModel.slug == slug)
+    problem = await Problem.find_one(Problem.slug == slug)
     if not problem:
         raise HTTPException(status_code=404, detail="Problem not found")
-    
     return problem
+
+@router.post("/execute")
+async def execute_code(request: ExecuteRequest):
+    """
+    Proxy request to CodeX API to avoid CORS issues and provide better error handling.
+    """
+    result = await CodeExecutionService.execute(request.language, request.code)
+    return result

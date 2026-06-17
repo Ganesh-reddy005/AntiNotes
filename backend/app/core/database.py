@@ -12,6 +12,7 @@ from app.models.review import Review
 from app.models.learning_memory import LearningMemory
 from app.models.revision import Revision
 from app.models.ai_log import AILog
+from app.models.roadmap import Topic, Roadmap, InteractiveWidget
 
 async def init_db():
     try:
@@ -38,7 +39,10 @@ async def init_db():
                 Review,
                 LearningMemory,
                 Revision,
-                AILog
+                AILog,
+                Topic,
+                Roadmap,
+                InteractiveWidget
             ],
         )
         print(f"✅ Beanie Initialized. Connected to: {settings.DB_NAME}")

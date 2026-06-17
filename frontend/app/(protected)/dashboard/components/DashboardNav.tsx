@@ -1,11 +1,11 @@
 "use client";
 import Link from "next/link";
-import { Code2, RefreshCw, User as UserIcon, LogOut } from "lucide-react";
+import { Code2, RefreshCw, User as UserIcon, LogOut, Map } from "lucide-react";
 
 export const DashboardNav = ({ onLogout }: { onLogout: () => void }) => (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-mistral-bg/80 backdrop-blur-md border-b border-mistral-navy/10">
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/dashboard" className="flex items-center gap-2">
                 <div className="grid grid-cols-2 gap-0.5">
                     <div className="w-1.5 h-1.5 bg-mistral-navy" />
                     <div className="w-1.5 h-1.5 bg-mistral-orange" />
@@ -18,6 +18,7 @@ export const DashboardNav = ({ onLogout }: { onLogout: () => void }) => (
             </Link>
             <div className="flex items-center gap-1">
                 {[
+                    { label: "Roadmaps", href: "/roadmaps", icon: Map },
                     { label: "Problems", href: "/problems", icon: Code2 },
                     { label: "Revision", href: "/revision", icon: RefreshCw },
                     { label: "Profile", href: "/profile", icon: UserIcon },
