@@ -324,5 +324,5 @@ yarn-error.log*
 next-env.d.ts
 
 # axon
-.axon/
+.axon
 /Users/ganeshreddybodireddy/Desktop/AntiNotes/.axon/
