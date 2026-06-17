@@ -5,7 +5,7 @@ from app.schemas.roadmap import TopicRead, RoadmapRead, RoadmapDetail, TopicCrea
 
 router = APIRouter()
 
-@router.get("/roadmaps", response_model=List[RoadmapRead])
+@router.api_route("/roadmaps", methods=["GET", "HEAD"], response_model=List[RoadmapRead])
 async def list_roadmaps():
     return await RoadmapModel.find_all().to_list()
 

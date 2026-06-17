@@ -37,7 +37,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 4. Health Check Endpoint
+# 4. Health Check Endpoints
 @app.api_route("/", methods=["GET", "HEAD"])
 async def root():
     return {
@@ -45,6 +45,10 @@ async def root():
         "service": settings.PROJECT_NAME,
         "database": settings.DB_NAME
     }
+
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def health_check():
+    return {"status": "ok"}
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 

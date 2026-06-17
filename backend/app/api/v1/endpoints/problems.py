@@ -10,7 +10,7 @@ class ExecuteRequest(BaseModel):
     language: str
     code: str
 
-@router.get("/", response_model=List[Problem])
+@router.api_route("/", methods=["GET", "HEAD"], response_model=List[Problem])
 async def list_problems(
     difficulty: Optional[Difficulty] = None,
     tag: Optional[str] = None
