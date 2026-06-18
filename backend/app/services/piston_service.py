@@ -15,9 +15,10 @@ class CodeExecutionService:
     @classmethod
     async def execute(cls, language: str, code: str) -> Dict[str, Any]:
         # List of providers to try in order
+        # Judge0 is first because it's significantly faster (~1.3s vs ~2.4s)
         providers = [
-            cls._execute_wandbox,
             cls._execute_judge0,
+            cls._execute_wandbox,
             cls._execute_glot
         ]
         
@@ -60,7 +61,15 @@ class CodeExecutionService:
         compiler = mapping.get(language.lower(), "cpython-3.13.8")
         
         async with httpx.AsyncClient() as client:
-            resp = await client.post(url, json={"compiler": compiler, "code": code, "save": False}, timeout=10.0)
+            json_data = {"compiler": compiler, "code": code, "save": False}
+            if language.lower() == "java":
+                import re
+                if re.search(r'\bclass\s+Main\b', code):
+                    # Wandbox Java requires class named 'prog'. We wrap Main.
+                    json_data["code"] = "public class prog { public static void main(String[] args) { try { Main.main(args); } catch(Exception e) { e.printStackTrace(); } } }"
+                    json_data["codes"] = [{"file": "Main.java", "code": code}]
+            
+            resp = await client.post(url, json=json_data, timeout=10.0)
             resp.raise_for_status()
             data = resp.json()
             
