@@ -53,7 +53,7 @@ export default function RoadmapDetailPage() {
                         {(() => {
                             let moduleCount = 0;
                             return roadmap.topic_details.map((topic, i) => {
-                                const isRevision = topic.slug === "foundation-revision" || topic.slug === "architect-revision";
+                                const isRevision = topic.slug.includes("revision") || topic.slug.includes("milestone") || topic.slug.endsWith("-intro");
                                 if (!isRevision) moduleCount++;
                                 
                                 return (
@@ -64,7 +64,7 @@ export default function RoadmapDetailPage() {
                                         transition={{ delay: i * 0.1 }}
                                     >
                                         <Link 
-                                            href={`/roadmaps/topics/${topic.slug}`}
+                                            href={`/roadmaps/topics/${topic.slug}?roadmap=${slug}`}
                                             className={`flex items-center gap-6 bg-white border p-6 transition-all group ${
                                                 isRevision 
                                                 ? "border-amber-500/30 hover:border-amber-500 hover:shadow-[4px_4px_0px_0px_#f59e0b]" 
