@@ -39,27 +39,27 @@ export default function Hero() {
           transition={{ duration: 0.5 }}
           className="inline-flex items-center gap-2 px-3 py-1 border border-mistral-navy/10 bg-white mb-8 shadow-[2px_2px_0px_0px_rgba(200,200,200,0.5)]"
         >
-          <span className="w-2 h-2 bg-mistral-orange animate-pulse"></span>
-          <span className="text-xs font-mono font-medium text-mistral-navy tracking-tight uppercase">v1.0 // public_beta</span>
+          <span className="w-2 h-2 bg-red-500 animate-pulse"></span>
+          <span className="text-xs font-mono font-bold text-mistral-navy tracking-tight uppercase">WARNING: FOR SERIOUS ASPIRING ENGINEERS ONLY</span>
         </motion.div>
 
         {/* Headlines */}
-        <h1 className="font-serif text-5xl md:text-8xl font-medium text-mistral-navy leading-[0.9] tracking-tight mb-8">
+        <h1 className="font-serif text-5xl md:text-7xl font-medium text-mistral-navy leading-[1.0] tracking-tight mb-8">
           <motion.span
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
             className="block"
           >
-            Logic, <span className="italic text-mistral-orange">not</span> syntax.
+            We Don't Give You The <span className="italic text-mistral-orange">Answers.</span>
           </motion.span>
           <motion.span
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.8 }}
-            className="block text-mistral-navy/80"
+            className="block text-mistral-navy/80 mt-2"
           >
-            Thinking, not typing.
+            We Build Your <span className="underline decoration-mistral-orange">Thinking Capabilities.</span>
           </motion.span>
         </h1>
 
@@ -67,10 +67,9 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.8 }}
-          className="text-lg md:text-xl text-mistral-navy/60 font-sans max-w-2xl mx-auto leading-relaxed mb-12"
+          className="text-lg md:text-xl text-mistral-navy/60 font-sans max-w-3xl mx-auto leading-relaxed mb-12"
         >
-          The first AI tutor that ignores your semicolons and grades your mental models.
-          Stop grinding LeetCode blind.
+          Stop wasting time on endless YouTube tutorials, bloated roadmaps, and Excel tracking sheets. AntiNotes provides a <strong className="text-mistral-navy font-semibold">zero-fluff curriculum</strong> that automatically adapts to your brain—the more you use it, the better it gets at helping you think. We eliminate cognitive entropy so you can master interviews in a fraction of the time.
         </motion.p>
 
         {/* CTA BUTTONS */}
@@ -118,8 +117,8 @@ export default function Hero() {
           transition={{ delay: 1.1 }}
           className="mt-10 flex flex-col items-center gap-3"
         >
-          <p className="text-xs font-mono text-mistral-navy/40 uppercase tracking-widest">
-            Free to use · No credit card required · Join 400+ engineers
+          <p className="text-xs font-mono text-mistral-navy/60 uppercase tracking-widest font-bold">
+            <span className="text-red-500">Only 42 Beta Spots Remaining This Week</span> · Join 400+ engineers
           </p>
         </motion.div>
 

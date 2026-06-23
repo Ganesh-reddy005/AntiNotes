@@ -70,6 +70,7 @@ export default function ProfilePage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
 
     // Form state (only editables)
     const [form, setForm] = useState({
@@ -86,7 +87,7 @@ export default function ProfilePage() {
                 setForm({
                     skill_level: res.data.skill_level || "beginner",
                     goal: res.data.goal || "learn_for_fun",
-                    primary_language: res.data.primary_language || "Python",
+                    primary_language: res.data.primary_language ? res.data.primary_language.toLowerCase() : "python",
                     preferred_explanation_style: res.data.preferred_explanation_style || "direct",
                 });
             })
@@ -105,6 +106,7 @@ export default function ProfilePage() {
             if (profile) {
                 setProfile({ ...profile, ...form });
             }
+            setIsEditing(false);
         } catch {
             alert("Failed to update profile");
         } finally {
@@ -155,12 +157,17 @@ export default function ProfilePage() {
                             {/* Primary Language */}
                             <div>
                                 <label className="block font-mono text-xs text-mistral-navy mb-2">Primary Language</label>
-                                <input
-                                    type="text"
+                                <select
                                     value={form.primary_language}
                                     onChange={e => setForm({ ...form, primary_language: e.target.value })}
-                                    className="w-full bg-mistral-bg border border-mistral-navy/20 px-4 py-2 font-mono text-sm text-mistral-navy focus:outline-none focus:border-mistral-orange transition-colors"
-                                />
+                                    disabled={!isEditing}
+                                    className="w-full bg-mistral-bg border border-mistral-navy/20 px-4 py-2 font-mono text-sm text-mistral-navy focus:outline-none focus:border-mistral-orange transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <option value="python">Python</option>
+                                    <option value="javascript">JavaScript</option>
+                                    <option value="java">Java</option>
+                                    <option value="cpp">C++</option>
+                                </select>
                                 <p className="font-sans text-[10px] text-mistral-navy/40 mt-1">Default language for new code problems.</p>
                             </div>
 
@@ -170,10 +177,11 @@ export default function ProfilePage() {
                                 <div className="grid grid-cols-3 gap-2">
                                     {FIELD_OPTIONS.skill_level.map(opt => (
                                         <button key={opt.id} onClick={() => setForm({ ...form, skill_level: opt.id })}
+                                            disabled={!isEditing}
                                             className={`p-3 border text-left transition-all ${form.skill_level === opt.id
                                                 ? "border-mistral-orange bg-orange-50/50"
                                                 : "border-mistral-navy/10 hover:border-mistral-navy/30 bg-mistral-bg/50"
-                                                }`}>
+                                                } ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}>
                                             <div className={`font-mono text-xs mb-1 ${form.skill_level === opt.id ? "text-mistral-orange font-bold" : "text-mistral-navy"}`}>
                                                 {opt.label}
                                             </div>
@@ -191,10 +199,11 @@ export default function ProfilePage() {
                                 <div className="grid grid-cols-2 gap-2">
                                     {FIELD_OPTIONS.goal.map(opt => (
                                         <button key={opt.id} onClick={() => setForm({ ...form, goal: opt.id })}
+                                            disabled={!isEditing}
                                             className={`p-3 border text-left transition-all ${form.goal === opt.id
                                                 ? "border-mistral-orange bg-orange-50/50"
                                                 : "border-mistral-navy/10 hover:border-mistral-navy/30 bg-mistral-bg/50"
-                                                }`}>
+                                                } ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}>
                                             <div className={`font-mono text-xs mb-1 ${form.goal === opt.id ? "text-mistral-orange font-bold" : "text-mistral-navy"}`}>
                                                 {opt.label}
                                             </div>
@@ -212,10 +221,11 @@ export default function ProfilePage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                     {FIELD_OPTIONS.preferred_explanation_style.map(opt => (
                                         <button key={opt.id} onClick={() => setForm({ ...form, preferred_explanation_style: opt.id })}
+                                            disabled={!isEditing}
                                             className={`p-3 border text-left transition-all ${form.preferred_explanation_style === opt.id
                                                 ? "border-mistral-orange bg-orange-50/50"
                                                 : "border-mistral-navy/10 hover:border-mistral-navy/30 bg-mistral-bg/50"
-                                                }`}>
+                                                } ${!isEditing ? "opacity-60 cursor-not-allowed" : ""}`}>
                                             <div className={`font-mono text-xs mb-1 ${form.preferred_explanation_style === opt.id ? "text-mistral-orange font-bold" : "text-mistral-navy"}`}>
                                                 {opt.label}
                                             </div>
@@ -230,14 +240,42 @@ export default function ProfilePage() {
                             {/* Save Button */}
                             <div className="pt-4 border-t border-mistral-navy/10 flex items-center justify-end gap-3">
                                 {saved && <span className="font-mono text-xs text-emerald-600 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Saved</span>}
-                                <button
-                                    onClick={handleSave}
-                                    disabled={saving}
-                                    className="flex items-center gap-2 px-6 py-2.5 bg-mistral-navy text-white font-mono text-xs border border-mistral-navy shadow-[3px_3px_0px_0px_#f97316] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_#f97316] active:shadow-none transition-all disabled:opacity-70 disabled:cursor-not-allowed"
-                                >
-                                    {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                                    Save Preferences
-                                </button>
+                                {!isEditing ? (
+                                    <button
+                                        onClick={() => setIsEditing(true)}
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-mistral-bg text-mistral-navy font-mono text-xs border border-mistral-navy/20 hover:border-mistral-navy transition-all"
+                                    >
+                                        Edit Profile
+                                    </button>
+                                ) : (
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => {
+                                                setIsEditing(false);
+                                                if (profile) {
+                                                    setForm({
+                                                        skill_level: profile.skill_level || "beginner",
+                                                        goal: profile.goal || "learn_for_fun",
+                                                        primary_language: profile.primary_language ? profile.primary_language.toLowerCase() : "python",
+                                                        preferred_explanation_style: profile.preferred_explanation_style || "direct",
+                                                    });
+                                                }
+                                            }}
+                                            disabled={saving}
+                                            className="flex items-center gap-2 px-6 py-2.5 bg-transparent text-mistral-navy/60 font-mono text-xs hover:text-mistral-navy transition-all disabled:opacity-50"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleSave}
+                                            disabled={saving}
+                                            className="flex items-center gap-2 px-6 py-2.5 bg-mistral-navy text-white font-mono text-xs border border-mistral-navy shadow-[3px_3px_0px_0px_#f97316] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[1px_1px_0px_0px_#f97316] active:shadow-none transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                                        >
+                                            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                                            Save Preferences
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     </div>

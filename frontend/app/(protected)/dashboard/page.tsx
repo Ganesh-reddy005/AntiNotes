@@ -116,7 +116,7 @@ export default function DashboardPage() {
                 {/* Stats Row — live computed */}
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
                     className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <StatCard icon={Flame} label="Day Streak" value={`${profile?.current_streak ?? 0}d`} accent />
+                    <StatCard icon={Flame} label="Day Streak" value={`${profile?.current_streak ?? 0}`} accent />
                     <StatCard icon={Code2} label="Solved" value={liveSolved} sub="distinct problems" />
                     <StatCard icon={Target} label="Reviews" value={liveReviews} />
                     <StatCard icon={BarChart2} label="Avg Score" value={avgScore > 0 ? `${avgScore}` : "—"} sub="across all reviews" />
