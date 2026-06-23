@@ -9,28 +9,24 @@ const stats = [
         value: "400+",
         label: "Engineers on Beta",
         color: "text-mistral-orange",
-        bg: "bg-mistral-orange/10",
     },
     {
         icon: <Brain className="w-5 h-5" />,
         value: "450+",
         label: "DSA Concepts Mapped",
-        color: "text-blue-500",
-        bg: "bg-blue-500/10",
+        color: "text-blue-600",
     },
     {
         icon: <Target className="w-5 h-5" />,
         value: "3×",
         label: "Faster Retention",
-        color: "text-emerald-500",
-        bg: "bg-emerald-500/10",
+        color: "text-emerald-600",
     },
     {
         icon: <Zap className="w-5 h-5" />,
-        value: "< 30s",
+        value: "< 5s",
         label: "To First AI Review",
-        color: "text-purple-500",
-        bg: "bg-purple-500/10",
+        color: "text-purple-600",
     },
 ];
 
@@ -57,7 +53,7 @@ export default function SocialProof() {
         <section id="social-proof" className="relative w-full max-w-7xl mx-auto px-6 py-20 md:py-28">
 
             {/* Stats Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-20">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-20">
                 {stats.map((stat, i) => (
                     <motion.div
                         key={i}
@@ -65,13 +61,13 @@ export default function SocialProof() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: i * 0.1 }}
-                        className="flex flex-col items-center text-center p-6 bg-white border border-mistral-navy/8 shadow-[2px_2px_0px_0px_rgba(15,23,42,0.06)]"
+                        className="flex flex-col p-5 bg-white border border-mistral-navy/10 hover:border-mistral-navy/20 transition-all"
                     >
-                        <div className={`p-2 rounded-lg ${stat.bg} ${stat.color} mb-3`}>
+                        <div className={`mb-3 ${stat.color}`}>
                             {stat.icon}
                         </div>
-                        <div className={`font-serif text-4xl font-bold ${stat.color} mb-1`}>{stat.value}</div>
-                        <div className="font-mono text-xs text-mistral-navy/50 uppercase tracking-widest">{stat.label}</div>
+                        <div className="font-sans text-2xl md:text-3xl font-bold text-mistral-navy tracking-tight mb-1">{stat.value}</div>
+                        <div className="font-sans text-xs text-mistral-navy/60 font-medium">{stat.label}</div>
                     </motion.div>
                 ))}
             </div>

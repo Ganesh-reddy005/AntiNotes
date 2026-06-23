@@ -129,7 +129,7 @@ export default function BentoGrid() {
                     flex items-center gap-3
                     ${activeId === feature.id 
                         ? `bg-white border-mistral-orange shadow-md scale-[1.02]` 
-                        : "bg-white/50 border-gray-200 hover:bg-white"
+                        : "bg-white/50 border-gray-200 hover:bg-white opacity-70 hover:opacity-100"
                     }
                 `}
             >
@@ -170,7 +170,7 @@ export default function BentoGrid() {
                         x, 
                         y, 
                         rotate: rotateCard, 
-                        opacity: activeId === index ? 1 : 0.4,
+                        opacity: activeId === index ? 1 : 0.6,
                         scale: activeId === index ? 1 : 0.9
                     }}
                     transition={{ type: "spring", stiffness: 300, damping: 24 }}

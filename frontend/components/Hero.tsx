@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import { motion } from "framer-motion";
-import { Terminal, ArrowRight, Sparkles } from "lucide-react";
+import { Terminal, ArrowRight, Sparkles,Play } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 
@@ -44,7 +44,7 @@ export default function Hero() {
         </motion.div>
 
         {/* Headlines */}
-        <h1 className="font-serif text-5xl md:text-7xl font-medium text-mistral-navy leading-[1.0] tracking-tight mb-8">
+        <h1 className="font-serif text-5xl md:text-6thxl font-medium text-mistral-navy leading-[1.0] tracking-tight mb-8">
           <motion.span
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -67,9 +67,9 @@ export default function Hero() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.8 }}
-          className="text-lg md:text-xl text-mistral-navy/60 font-sans max-w-3xl mx-auto leading-relaxed mb-12"
+          className="text-lg md:text-xl text-mistral-navy/60 font-sans max-w-2xl mx-auto leading-relaxed mb-12"
         >
-          Stop wasting time on endless YouTube tutorials, bloated roadmaps, and Excel tracking sheets. AntiNotes provides a <strong className="text-mistral-navy font-semibold">zero-fluff curriculum</strong> that automatically adapts to your brain—the more you use it, the better it gets at helping you think. We eliminate cognitive entropy so you can master interviews in a fraction of the time.
+          Stop wasting time on endless tutorials. AntiNotes provides an adaptive, <strong className="text-mistral-navy font-semibold">zero-fluff DSA curriculum</strong> that eliminates cognitive entropy. <span className="text-mistral-navy/90 font-medium">The more you solve, the sharper your thinking gets.</span>
         </motion.p>
 
         {/* CTA BUTTONS */}
@@ -103,9 +103,9 @@ export default function Hero() {
 
           <button
             onClick={scrollToFeatures}
-            className="inline-flex items-center gap-2 px-8 py-4 bg-transparent text-mistral-navy font-mono text-sm font-bold uppercase tracking-wider border border-mistral-navy/20 hover:border-mistral-navy hover:bg-white transition-all"
+            className="group inline-flex items-center gap-2 px-8 py-4 bg-white/40 backdrop-blur-sm text-mistral-navy font-mono text-sm font-bold uppercase tracking-wider border border-mistral-navy/20 hover:border-mistral-orange hover:text-mistral-orange hover:bg-white transition-all"
           >
-            <Sparkles className="w-4 h-4 text-mistral-orange" />
+            <Play className="w-4 h-4 text-mistral-navy group-hover:text-mistral-orange transition-colors fill-current" />
             <span>See How It Works</span>
           </button>
         </motion.div>
@@ -118,7 +118,7 @@ export default function Hero() {
           className="mt-10 flex flex-col items-center gap-3"
         >
           <p className="text-xs font-mono text-mistral-navy/60 uppercase tracking-widest font-bold">
-            <span className="text-red-500">Only 42 Beta Spots Remaining This Week</span> · Join 400+ engineers
+            <span className="text-mistral-orange">Currently in beta</span> · Join 400+ engineers
           </p>
         </motion.div>
 

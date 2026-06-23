@@ -35,7 +35,7 @@ export default function LoginPage() {
         <div className="min-h-screen bg-mistral-bg flex">
             {/* Left Panel — Philosophy */}
             <div className="hidden lg:flex flex-col justify-between w-1/2 bg-mistral-navy p-12">
-                <div className="flex items-center gap-2">
+                <Link href="/" className="flex items-center gap-2 w-fit hover:opacity-80 transition-opacity">
                     <div className="grid grid-cols-2 gap-0.5">
                         <div className="w-1.5 h-1.5 bg-white" />
                         <div className="w-1.5 h-1.5 bg-mistral-orange" />
@@ -45,7 +45,7 @@ export default function LoginPage() {
                     <span className="font-serif text-xl font-bold text-white">
                         AntiNotes<span className="text-mistral-orange">.</span>
                     </span>
-                </div>
+                </Link>
 
                 <div>
                     <blockquote className="font-serif text-4xl font-medium text-white leading-tight mb-6">
@@ -72,7 +72,7 @@ export default function LoginPage() {
                     className="w-full max-w-md"
                 >
                     {/* Mobile Logo */}
-                    <div className="flex items-center gap-2 mb-10 lg:hidden">
+                    <Link href="/" className="flex items-center gap-2 mb-10 lg:hidden w-fit hover:opacity-80 transition-opacity">
                         <div className="grid grid-cols-2 gap-0.5">
                             <div className="w-1.5 h-1.5 bg-mistral-navy" />
                             <div className="w-1.5 h-1.5 bg-mistral-orange" />
@@ -82,7 +82,7 @@ export default function LoginPage() {
                         <span className="font-serif text-xl font-bold text-mistral-navy">
                             AntiNotes<span className="text-mistral-orange">.</span>
                         </span>
-                    </div>
+                    </Link>
 
                     <h1 className="font-serif text-4xl font-medium text-mistral-navy mb-2">Welcome back.</h1>
                     <p className="font-sans text-mistral-navy/50 text-sm mb-8">

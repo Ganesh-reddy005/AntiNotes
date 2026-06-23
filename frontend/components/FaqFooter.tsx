@@ -1,5 +1,7 @@
 "use client";
 import React from 'react';
+import Link from "next/link";
+import { Terminal, ArrowRight } from "lucide-react";
 
 const faqs = [
   {
@@ -44,6 +46,36 @@ export default function FaqFooter() {
               </p>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* FINAL CTA SECTION (Conversion Trap) */}
+      <section className="w-full bg-mistral-navy py-24 px-6 border-t border-mistral-navy/10 relative overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-mistral-orange/20 blur-[100px] pointer-events-none rounded-full" />
+        
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <h2 className="font-serif text-4xl md:text-6xl text-white mb-6 leading-tight tracking-tight">
+            Placements are approaching.<br/>
+            <span className="italic text-mistral-orange">Are you ready?</span>
+          </h2>
+          
+          <p className="font-sans text-lg text-white/70 max-w-2xl mx-auto mb-10 leading-relaxed">
+            Stop watching endless tutorials. Start building your thinking capabilities. Join 400+ engineers who are already rewiring their brains for top-tier tech interviews.
+          </p>
+
+          <Link
+            href="/register"
+            className="group relative inline-flex items-center gap-3 px-8 py-5 bg-mistral-orange text-mistral-navy font-mono text-sm md:text-base font-bold uppercase tracking-wider shadow-[6px_6px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.1)] active:shadow-none transition-all"
+          >
+            <Terminal className="w-5 h-5 text-mistral-navy" />
+            <span>Claim Your Beta Access</span>
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </Link>
+          
+          <p className="mt-8 text-xs font-mono text-white/40 uppercase tracking-widest">
+            Currently in private beta · Free forever for early users
+          </p>
         </div>
       </section>
 
