@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from typing import List
 from bson import ObjectId
-
+from datetime import datetime
 from app.models.user import User
 from app.models.profile import Profile
 from app.models.review import Review
@@ -28,6 +28,35 @@ async def get_my_profile(current_user: User = Depends(get_current_user)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Profile not found. Please complete onboarding."
         )
+
+    # --- Streak Calculation ---
+    now = datetime.now()
+    now_date = now.date()
+
+    if profile.last_active_date:
+        last_date = profile.last_active_date.date()
+        diff = (now_date - last_date).days
+        
+        needs_save = False
+        if diff == 1:
+            profile.current_streak += 1
+            profile.last_active_date = now
+            needs_save = True
+        elif diff > 1:
+            profile.current_streak = 1
+            profile.last_active_date = now
+            needs_save = True
+        elif diff == 0 and profile.current_streak == 0:
+            profile.current_streak = 1
+            profile.last_active_date = now
+            needs_save = True
+            
+        if needs_save:
+            await profile.save()
+    else:
+        profile.current_streak = 1
+        profile.last_active_date = now
+        await profile.save()
 
     # Live counts — count from actual Review documents, not stale profile counters
     all_reviews = await Review.find(

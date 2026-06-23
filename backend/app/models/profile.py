@@ -56,6 +56,7 @@ class Profile(Document):
     total_reviews: int = 0
     problems_solved: int = 0
     current_streak: int = 0
+    last_active_date: Optional[datetime] = None
     updated_at: datetime = Field(default_factory=datetime.now)
     created_at: datetime = Field(default_factory=datetime.now)
     
