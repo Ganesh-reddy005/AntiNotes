@@ -108,9 +108,24 @@ export default function TopicDetailPage() {
 
         try {
             const token = localStorage.getItem("antinotes_token");
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/lilly/roadmap/chat`, {
+            if (!token) {
+                throw new Error("Not authenticated");
+            }
+
+            // Use the same base URL as the rest of the app
+            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            // Remove trailing slash if present to avoid double slashes
+            const normalizedUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+            const endpoint = `${normalizedUrl}/lilly/roadmap/chat`;
+
+            console.log("Lilly roadmap chat endpoint:", endpoint); // Debug log
+            
+            const response = await fetch(endpoint, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "Authorization": `Bearer ${token}` 
+                },
                 body: JSON.stringify({
                     user_message: userMsg,
                     history: newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
@@ -119,7 +134,15 @@ export default function TopicDetailPage() {
                 }),
             });
 
-            const reader = response.body!.getReader();
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            if (!response.body) {
+                throw new Error("No response body");
+            }
+
+            const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let assistantText = "";
             setLillyMessages(prev => [...prev, { role: "assistant", content: "" }]);
@@ -145,8 +168,15 @@ export default function TopicDetailPage() {
                     }
                 }
             }
-        } catch (e) {
-            setLillyMessages(prev => [...prev, { role: "assistant", content: "Something went wrong. Try again!" }]);
+        } catch (e: any) {
+            console.error("Lilly roadmap chat error:", e);
+            setLillyMessages(prev => [
+                ...prev, 
+                { 
+                    role: "assistant", 
+                    content: `Something went wrong: ${e.message || "Try again!"}` 
+                }
+            ]);
         } finally {
             setLillyStreaming(false);
         }
