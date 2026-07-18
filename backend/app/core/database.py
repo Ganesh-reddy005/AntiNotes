@@ -12,6 +12,8 @@ from app.models.review import Review
 from app.models.learning_memory import LearningMemory
 from app.models.revision import Revision
 from app.models.ai_log import AILog
+from app.models.lilly_log import LillyLog
+from app.models.lilly_conversation import ConversationMessage, LillyConversation
 from app.models.roadmap import Topic, Roadmap, InteractiveWidget
 
 async def init_db():
@@ -40,12 +42,14 @@ async def init_db():
                 LearningMemory,
                 Revision,
                 AILog,
+                LillyLog,
+                ConversationMessage,
+                LillyConversation,
                 Topic,
                 Roadmap,
                 InteractiveWidget
             ],
         )
-        print(f"✅ Beanie Initialized. Connected to: {settings.DB_NAME}")
     except Exception as e:
-        print(f"❌ MongoDB/Beanie Error: {e}")
+        print(f"Database initialization error: {e}")
         raise e

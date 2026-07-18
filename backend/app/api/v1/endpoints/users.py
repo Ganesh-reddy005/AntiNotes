@@ -24,10 +24,17 @@ async def get_my_profile(current_user: User = Depends(get_current_user)):
     """
     profile = await Profile.find_one({"user.$id": ObjectId(str(current_user.id))})
     if not profile:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Profile not found. Please complete onboarding."
-        )
+        return {
+            "skill_level": "",
+            "primary_language": "",
+            "preferred_explanation_style": "",
+            "onboarding_completed": False,
+            "total_reviews": 0,
+            "problems_solved": 0,
+            "total_submissions": 0,
+            "current_streak": 0,
+            "updated_at": datetime.now()
+        }
 
     # --- Streak Calculation ---
     now = datetime.now()
@@ -151,6 +158,13 @@ async def get_recommended_problems(current_user: User = Depends(get_current_user
     # Get problems at the right difficulty, excluding already-solved ones
     all_at_level = await ProblemModel.find(ProblemModel.difficulty == difficulty).to_list()
     unsolved = [p for p in all_at_level if p.slug not in solved_slugs]
+
+    # Filter by Lilly's recommended tags if available
+    if profile and getattr(profile, "lilly_recommended_tags", []):
+        tags_set = set(profile.lilly_recommended_tags)
+        tag_filtered = [p for p in unsolved if any(tag in tags_set for tag in p.tags)]
+        if len(tag_filtered) >= 1:
+            unsolved = tag_filtered
 
     # Fallback: if all problems at level are solved, try next level up, then any
     if not unsolved:

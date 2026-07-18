@@ -11,14 +11,12 @@ from app.api.v1.api import api_router
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Connect to DB
-    print("🚀 Initializing Database Connection...")
     await init_db()
-    print("✅ Database Connected.")
     
     yield
     
     # Shutdown: Clean up resources (if needed later)
-    print("🛑 Shutting down...")
+    pass
 
 # 2. Initialize App
 app = FastAPI(

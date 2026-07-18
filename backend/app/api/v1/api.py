@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import problems, tutor, review, onboarding, revision, auth, sessions, users, roadmap
+from app.api.v1.endpoints import problems, tutor, review, onboarding, revision, auth, sessions, users, roadmap, lilly
 
 api_router = APIRouter()
 
@@ -13,3 +13,4 @@ api_router.include_router(revision.router, prefix="/revision", tags=["revision"]
 api_router.include_router(sessions.router, prefix="/sessions", tags=["sessions"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(roadmap.router, prefix="/roadmap", tags=["roadmap"])
+api_router.include_router(lilly.router, prefix="/lilly", tags=["lilly"])

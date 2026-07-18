@@ -330,3 +330,36 @@ frontend/CODEBASE_NOTES.md
 
 backend/scripts
 prd.txt
+
+
+.agents/
+skills-lock.json
+
+# === Debug and Test Files (from optimization session) ===
+# Documentation files
+START_HERE.md
+TEST_LOGIN.md
+DEBUG_STEPS.md
+SOLUTION.md
+ISSUE_FIXED.md
+PERFORMANCE_FIX.md
+PREFETCH_EXPLANATION.md
+HYBRID_OPTIMIZATION_COMPLETE.md
+FINAL_OPTIMIZATIONS_SUMMARY.md
+CHECKLIST_NO_NETWORK_REQUEST.md
+frontend/CODEBASE_NOTES.md/
+# Test/debug pages
+frontend/app/simple-test/
+frontend/app/debug-login/
+
+# Diagnostic scripts
+test_backend.sh
+diagnose.sh
+backend/check_users.py
+
+test_api.py
+test_db.py
+
+
+PRODUCTION_DEPLOYMENT_SUMMARY.md
+PUSH_TO_PRODUCTION.md

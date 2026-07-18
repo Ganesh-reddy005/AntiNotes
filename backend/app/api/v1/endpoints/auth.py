@@ -12,6 +12,7 @@ from typing import Optional
 from app.models.user import User
 from app.core.security import create_access_token, verify_password, get_password_hash
 from app.core.dependencies import get_current_user
+from beanie import PydanticObjectId
 
 router = APIRouter()
 
@@ -24,11 +25,13 @@ class UserRegister(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: str
+    id: PydanticObjectId
     email: str
     full_name: Optional[str]
     logic_elo: int
     is_active: bool
+
+    model_config = {"from_attributes": True}
 
 
 class TokenResponse(BaseModel):
