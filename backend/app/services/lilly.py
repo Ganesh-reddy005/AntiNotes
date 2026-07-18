@@ -269,7 +269,7 @@ class LillyService:
                 model=settings.TUTOR_MODEL,
                 messages=messages,
                 temperature=0.7,
-                max_tokens=250
+                max_tokens=500  # Increased from 250 to prevent cut-off messages
             )
             latency = (time.time() - start_time) * 1000
 
