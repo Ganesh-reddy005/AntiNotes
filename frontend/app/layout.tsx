@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Inter, JetBrains_Mono } from "next/font/google";
+import { Playfair_Display, Inter, JetBrains_Mono, Caveat } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/lib/auth";
 import "./globals.css";
@@ -7,6 +7,7 @@ import "./globals.css";
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-serif" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
+const caveat = Caveat({ subsets: ["latin"], variable: "--font-hand" });
 
 export const metadata: Metadata = {
   title: "Antinotes | Master Algorithmic Thinking",
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${playfair.variable} ${inter.variable} ${jetbrains.variable} bg-mistral-bg text-gray-900 antialiased`}>
+      <body className={`${playfair.variable} ${inter.variable} ${jetbrains.variable} ${caveat.variable} bg-mistral-bg text-gray-900 antialiased`}>
         <AuthProvider>
           {children}
         </AuthProvider>

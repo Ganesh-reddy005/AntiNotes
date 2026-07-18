@@ -1,16 +1,18 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { roadmapApi, problemsApi, userApi, Topic, Problem, InteractiveWidget } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { ArrowLeft, ArrowRight, BookOpen, ChevronLeft, ChevronRight, Code2, GraduationCap, Home, Zap } from "lucide-react";
+import { ChevronLeft, ChevronRight, Code2, GraduationCap, Home, Send, Sparkles, Zap } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import remarkGfm from 'remark-gfm';
 import { CodeTabs } from "@/components/interactive/CodeTabs";
 import { MCQQuiz } from "@/components/interactive/MCQQuiz";
 import { LiveCodeEditor } from "@/components/interactive/LiveCodeEditor";
+
 
 // Static content imports
 import IntroToIOTopic from "../content/intro-io";
@@ -87,6 +89,74 @@ export default function TopicDetailPage() {
     const [userLanguage, setUserLanguage] = useState<string>("python");
     const [roadmapSlug, setRoadmapSlug] = useState<string>("programming-foundations");
     const [loading, setLoading] = useState(true);
+
+    // Lilly state
+    type LillyMessage = { role: "user" | "assistant"; content: string };
+    const [lillyMessages, setLillyMessages] = useState<LillyMessage[]>([]);
+    const [lillyInput, setLillyInput] = useState("");
+    const [lillyStreaming, setLillyStreaming] = useState(false);
+    const lillyBottomRef = useRef<HTMLDivElement>(null);
+    const lillyScrollRef = useRef<HTMLDivElement>(null);
+
+    const sendToLilly = async () => {
+        if (!lillyInput.trim() || lillyStreaming || !topic) return;
+        const userMsg = lillyInput.trim();
+        setLillyInput("");
+        const newMessages: LillyMessage[] = [...lillyMessages, { role: "user", content: userMsg }];
+        setLillyMessages(newMessages);
+        setLillyStreaming(true);
+
+        try {
+            const token = localStorage.getItem("antinotes_token");
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"}/lilly/roadmap/chat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                    user_message: userMsg,
+                    history: newMessages.slice(-6).map(m => ({ role: m.role, content: m.content })),
+                    topic_title: topic.title,
+                    topic_description: topic.description || "",
+                }),
+            });
+
+            const reader = response.body!.getReader();
+            const decoder = new TextDecoder();
+            let assistantText = "";
+            setLillyMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const lines = decoder.decode(value).split("\n");
+                for (const line of lines) {
+                    if (line.startsWith("data: ")) {
+                        const raw = line.slice(6);
+                        if (raw === "[DONE]") break;
+                        try {
+                            const chunk = JSON.parse(raw);
+                            assistantText += chunk;
+                        } catch {
+                            assistantText += raw;
+                        }
+                        setLillyMessages(prev => [
+                            ...prev.slice(0, -1),
+                            { role: "assistant", content: assistantText }
+                        ]);
+                    }
+                }
+            }
+        } catch (e) {
+            setLillyMessages(prev => [...prev, { role: "assistant", content: "Something went wrong. Try again!" }]);
+        } finally {
+            setLillyStreaming(false);
+        }
+    };
+
+    useEffect(() => {
+        if (lillyScrollRef.current) {
+            lillyScrollRef.current.scrollTop = lillyScrollRef.current.scrollHeight;
+        }
+    }, [lillyMessages]);
 
     useEffect(() => {
         if (!slug) return;
@@ -252,10 +322,86 @@ export default function TopicDetailPage() {
                         </motion.div>
                     </div>
 
-                    {/* Right: Problems & Info */}
-                    <div className="lg:col-span-3 space-y-8">
-                        <div className="sticky top-24">
-                            <div className="bg-white border border-mistral-navy/10 p-6 shadow-sm mb-6">
+                    {/* Right: Lilly + Problems */}
+                    <div className="lg:col-span-3 space-y-6">
+                        <div className="sticky top-24 space-y-6">
+
+                            {/* Lilly Chat Panel */}
+                            <div className="bg-white border border-mistral-navy/10 shadow-sm flex flex-col" style={{ height: "360px" }}>
+                                <div className="flex items-center gap-2 px-4 py-3 border-b border-mistral-navy/8 bg-mistral-navy/2">
+                                    <Sparkles className="w-3.5 h-3.5 text-mistral-orange" />
+                                    <span className="font-mono text-[10px] uppercase tracking-widest text-mistral-navy/60 font-bold">Ask Lilly</span>
+                                    <span className="ml-auto font-mono text-[9px] text-mistral-navy/30 uppercase tracking-wider">AI • Topic Guide</span>
+                                </div>
+
+                                {/* Messages */}
+                                <div ref={lillyScrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+                                    {lillyMessages.length === 0 && (
+                                        <p className="text-xs text-mistral-navy/40 font-sans text-center mt-6 leading-relaxed">
+                                            Ask me anything about<br /><span className="font-semibold text-mistral-navy/60">{topic?.title}</span>
+                                        </p>
+                                    )}
+                                    {lillyMessages.map((msg, i) => (
+                                        <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                                            <div className={`max-w-[85%] px-3 py-2 text-xs font-sans leading-relaxed ${
+                                                msg.role === "user"
+                                                    ? "bg-mistral-navy text-white rounded-tl-xl rounded-bl-xl rounded-tr-xl"
+                                                    : "bg-mistral-bg text-mistral-navy/80 rounded-tr-xl rounded-br-xl rounded-tl-xl border border-mistral-navy/8"
+                                            }`}>
+                                                {msg.role === "user" ? (
+                                                    <span>{msg.content}</span>
+                                                ) : (
+                                                    <ReactMarkdown
+                                                        remarkPlugins={[remarkGfm]}
+                                                        components={{
+                                                            p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
+                                                            pre: ({ children }) => (
+                                                                <pre className="bg-mistral-navy/10 rounded p-2 text-[10px] overflow-x-auto mt-2 mb-2 whitespace-pre font-mono">{children}</pre>
+                                                            ),
+                                                            code: ({ children, className }) => {
+                                                                const isBlock = !!className;
+                                                                return isBlock
+                                                                    ? <code className="font-mono text-[10px]">{children}</code>
+                                                                    : <code className="bg-mistral-navy/10 rounded px-1 text-[10px] font-mono">{children}</code>;
+                                                            },
+                                                            strong: ({ children }) => <span>{children}</span>,
+                                                            em: ({ children }) => <span>{children}</span>,
+                                                        }}
+                                                    >
+                                                        {msg.content}
+                                                    </ReactMarkdown>
+                                                )}
+                                                {msg.role === "assistant" && lillyStreaming && i === lillyMessages.length - 1 && (
+                                                    <span className="inline-block w-1 h-3 bg-mistral-orange/60 ml-0.5 animate-pulse rounded-sm" />
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div ref={lillyBottomRef} />
+                                </div>
+
+                                {/* Input */}
+                                <div className="border-t border-mistral-navy/8 px-3 py-2 flex items-center gap-2">
+                                    <input
+                                        value={lillyInput}
+                                        onChange={e => setLillyInput(e.target.value)}
+                                        onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendToLilly(); } }}
+                                        placeholder="Ask a doubt..."
+                                        className="flex-1 text-xs font-sans bg-transparent text-mistral-navy placeholder-mistral-navy/30 outline-none"
+                                        disabled={lillyStreaming}
+                                    />
+                                    <button
+                                        onClick={sendToLilly}
+                                        disabled={lillyStreaming || !lillyInput.trim()}
+                                        className="p-1.5 bg-mistral-orange text-white disabled:opacity-30 hover:bg-mistral-orange/90 transition-colors"
+                                    >
+                                        <Send className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Difficulty Suggestion */}
+                            <div className="bg-white border border-mistral-navy/10 p-5 shadow-sm">
                                 <h4 className="font-mono text-[10px] uppercase tracking-widest text-mistral-navy/40 mb-4 flex items-center gap-2">
                                     <Zap className="w-3 h-3 text-mistral-orange" /> Difficulty Suggestion
                                 </h4>

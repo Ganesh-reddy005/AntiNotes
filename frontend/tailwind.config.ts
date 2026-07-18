@@ -21,6 +21,7 @@ const config: Config = {
         serif: ["var(--font-serif)", "serif"], // Playfair Display
         sans: ["var(--font-sans)", "sans-serif"], // Inter
         mono: ["var(--font-mono)", "monospace"], // JetBrains Mono
+        hand: ["var(--font-hand)", "cursive"], // Caveat
       },
       backgroundImage: {
         'pixel-pattern': "url(\"data:image/svg+xml,%3Csvg width='8' height='8' viewBox='0 0 8 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0z' fill='%230f172a' fill-opacity='0.05'/%3E%3C/svg%3E\")",

@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import {
-    userApi, revisionApi, roadmapApi,
+    userApi, revisionApi, roadmapApi, lillyApi, clearApiCache,
     Profile, Problem, RevisionTopic, SubmissionHistory, LearningMemory, Roadmap
 } from "@/lib/api";
 import {
@@ -17,6 +17,7 @@ import { StatCard } from "./components/StatCard";
 import { HistoryList } from "./components/HistoryList";
 import { LearningIntelligence } from "./components/LearningIntelligence";
 import { MilestoneCard } from "./components/MilestoneCard";
+import LillyChat from "@/components/LillyChat";
 
 const diffColor = (d: string) =>
     d === "Easy" ? "text-emerald-600 bg-emerald-50 border-emerald-200" :
@@ -31,10 +32,16 @@ export default function DashboardPage() {
     const [history, setHistory] = useState<SubmissionHistory[]>([]);
     const [memory, setMemory] = useState<LearningMemory | null>(null);
     const [featuredRoadmap, setFeaturedRoadmap] = useState<Roadmap | null>(null);
+    const [nudge, setNudge] = useState<{ message: string; recommendation_title: string } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [showLilly, setShowLilly] = useState(false);
+    
+    // Prevent double-fetch in React StrictMode
+    const hasFetched = useRef(false);
 
     const fetchData = async () => {
         try {
+            // Using individual requests (original working method)
             const [profileRes, dueRes, recRes, histRes, memRes, roadmapRes] = await Promise.all([
                 userApi.profile().catch(() => ({ data: null })),
                 revisionApi.due().catch(() => ({ data: [] as RevisionTopic[] })),
@@ -43,6 +50,7 @@ export default function DashboardPage() {
                 userApi.memory().catch(() => ({ data: null })),
                 roadmapApi.list().catch(() => ({ data: [] as Roadmap[] })),
             ]);
+            
             if (profileRes.data) setProfile(profileRes.data as Profile);
             setDueTopics((dueRes.data as RevisionTopic[]).slice(0, 3));
             setRecommended((recRes.data as Problem[]).slice(0, 4));
@@ -51,19 +59,27 @@ export default function DashboardPage() {
             
             const roadmaps = roadmapRes.data as Roadmap[];
             setFeaturedRoadmap(roadmaps.find(r => r.is_featured) || roadmaps[0] || null);
-        } catch {
-            /* unexpected error */
+        } catch (error) {
+            console.error("Dashboard data fetch error:", error);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
+        // Prevent double-fetch in React StrictMode
+        if (hasFetched.current) return;
+        hasFetched.current = true;
+        
         fetchData();
-        const onVisible = () => { if (document.visibilityState === "visible") fetchData(); };
-        document.addEventListener("visibilitychange", onVisible);
-        return () => document.removeEventListener("visibilitychange", onVisible);
-    }, []);
+        
+        // Fetch nudge separately (keeping original behavior)
+        import("@/lib/api").then(({ lillyApi }) => {
+            lillyApi.dashboardNudge().then(res => {
+                if (res.data) setNudge(res.data);
+            }).catch(() => {});
+        });
+    }, []); // Only fetch once on mount
 
     const hour = new Date().getHours();
     const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
@@ -97,7 +113,7 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-mistral-bg">
-            <DashboardNav onLogout={logout} />
+            <DashboardNav onLogout={logout} onOpenLilly={() => setShowLilly((s) => !s)} />
 
             <div className="max-w-6xl mx-auto px-6 pt-24 pb-16 space-y-10">
 
@@ -122,29 +138,68 @@ export default function DashboardPage() {
                     <StatCard icon={BarChart2} label="Avg Score" value={avgScore > 0 ? `${avgScore}` : "—"} sub="across all reviews" />
                 </motion.div>
 
-                {/* Featured Roadmap Banner */}
-                {featuredRoadmap && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                        <Link href="/roadmaps" 
-                            className="flex flex-col md:flex-row items-center justify-between gap-6 bg-mistral-navy p-8 border border-mistral-navy hover:shadow-[8px_8px_0px_0px_#f97316] transition-all group">
-                            <div className="space-y-2 text-left w-full">
+                {/* Lilly Banner — becomes the chat when "Lilly" is clicked (same card, same style) */}
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-white p-8 border border-mistral-navy/10 shadow-sm hover:border-mistral-navy hover:shadow-[8px_8px_0px_0px_#0f172a] transition-all group">
+                        <div className="space-y-4 text-left w-full">
+                            <div className="flex items-center justify-between gap-2">
                                 <div className="flex items-center gap-2">
-                                    <Map className="w-4 h-4 text-mistral-orange" />
-                                    <span className="font-mono text-[10px] text-white/50 uppercase tracking-widest">Recommended Path</span>
+                                    <div className="grid grid-cols-2 gap-0.5">
+                                        <div className="w-1 h-1 bg-mistral-navy" />
+                                        <div className="w-1 h-1 bg-mistral-orange" />
+                                        <div className="w-1 h-1 bg-mistral-sand" />
+                                        <div className="w-1 h-1 bg-mistral-yellow" />
+                                    </div>
+                                    <span className="font-mono text-[10px] text-mistral-orange uppercase tracking-widest font-bold">Lilly</span>
                                 </div>
-                                <h2 className="font-serif text-2xl md:text-3xl text-white group-hover:text-mistral-orange transition-colors">
-                                    {featuredRoadmap.title}
-                                </h2>
-                                <p className="font-sans text-white/60 text-sm max-w-xl">
-                                    {featuredRoadmap.description}
-                                </p>
+                                {showLilly && (
+                                    <button
+                                        onClick={() => setShowLilly(false)}
+                                        className="font-mono text-xs text-mistral-navy/40 hover:text-mistral-navy transition-all"
+                                    >
+                                        Close ✕
+                                    </button>
+                                )}
                             </div>
-                            <div className="flex items-center gap-2 bg-mistral-orange text-white px-6 py-3 font-mono text-sm font-bold group-hover:bg-white group-hover:text-mistral-navy transition-all flex-shrink-0">
-                                Start Learning <ChevronRight className="w-4 h-4" />
+
+                            {/* Static nudge — visible only when chat is closed */}
+                            <div className={showLilly ? "hidden" : "block"}>
+                                <motion.p
+                                    key={nudge?.message || profile?.lilly_last_nudge || "fallback"}
+                                    className="font-hand text-2xl md:text-3xl text-mistral-navy/80 w-full leading-relaxed"
+                                    variants={{
+                                        hidden: { opacity: 1 },
+                                        visible: {
+                                            opacity: 1,
+                                            transition: { staggerChildren: 0.03, delayChildren: 0.5 }
+                                        }
+                                    }}
+                                    initial="hidden"
+                                    animate="visible"
+                                >
+                                    {(nudge?.message || profile?.lilly_last_nudge || "I've analyzed your cognitive profile. Let's pick up where we left off and tackle some new challenges together.")
+                                        .split("")
+                                        .map((char: string, index: number) => (
+                                        <motion.span
+                                            key={index}
+                                            variants={{
+                                                hidden: { opacity: 0, filter: "blur(2px)" },
+                                                visible: { opacity: 1, filter: "blur(0px)" }
+                                            }}
+                                        >
+                                            {char}
+                                        </motion.span>
+                                    ))}
+                                </motion.p>
                             </div>
-                        </Link>
-                    </motion.div>
-                )}
+
+                            {/* Live chat — always mounted (hidden when closed) so history persists across toggles */}
+                            <div className={showLilly ? "block" : "hidden"}>
+                                <LillyChat context="personal" className="!bg-transparent" onProfileUpdated={() => { clearApiCache(); fetchData(); }} />
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
 
                 {/* Main grid */}
                 <div className="grid lg:grid-cols-3 gap-6">
@@ -177,7 +232,7 @@ export default function DashboardPage() {
                                         </div>
                                     ))}
                                 </div>
-                                <Link href="/revision" className="flex items-center gap-1 mt-4 font-mono text-xs text-mistral-orange hover:underline">
+                                <Link href="/revision" prefetch={false} className="flex items-center gap-1 mt-4 font-mono text-xs text-mistral-orange hover:underline">
                                     Start revision <ChevronRight className="w-3 h-3" />
                                 </Link>
                             </motion.div>
@@ -190,15 +245,15 @@ export default function DashboardPage() {
                             <div className="flex items-center gap-2">
                                 <BookOpen className="w-4 h-4 text-mistral-navy" />
                                 <span className="font-mono text-xs text-mistral-navy/60 uppercase tracking-wider">
-                                    {profile ? `Recommended for ${profile.skill_level}s` : "Recommended Problems"}
+                                    {nudge?.recommendation_title || (profile ? `Recommended for ${profile.skill_level}s` : "Recommended Problems")}
                                 </span>
                             </div>
-                            <Link href="/problems" className="font-mono text-xs text-mistral-orange hover:underline">Browse all →</Link>
+                            <Link href="/problems" prefetch={false} className="font-mono text-xs text-mistral-orange hover:underline">Browse all →</Link>
                         </div>
                         <div className="grid sm:grid-cols-2 gap-3">
                             {recommended.map((p, i) => (
                                 <motion.div key={p.slug} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.05 }}>
-                                    <Link href={`/problems/${p.slug}`}
+                                    <Link href={`/problems/${p.slug}`} prefetch={false}
                                         className="block bg-white border border-mistral-navy/10 p-4 hover:border-mistral-navy hover:shadow-[4px_4px_0px_0px_#0f172a] transition-all group">
                                         <div className="flex items-start justify-between gap-2 mb-2">
                                             <h3 className="font-mono text-sm font-bold text-mistral-navy group-hover:text-mistral-orange transition-colors leading-tight">{p.title}</h3>
@@ -219,7 +274,7 @@ export default function DashboardPage() {
                                 <div className="col-span-2 bg-white border border-dashed border-mistral-navy/20 p-8 text-center">
                                     <Code2 className="w-8 h-8 text-mistral-navy/20 mx-auto mb-2" />
                                     <p className="font-mono text-xs text-mistral-navy/40 mb-1">No unsolved problems left at your level 🎉</p>
-                                    <Link href="/problems" className="font-mono text-xs text-mistral-orange hover:underline">Browse all problems →</Link>
+                                    <Link href="/problems" prefetch={false} className="font-mono text-xs text-mistral-orange hover:underline">Browse all problems →</Link>
                                 </div>
                             )}
                         </div>

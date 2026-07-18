@@ -102,7 +102,7 @@ export function HistoryRow({ h, i }: { h: SubmissionHistory; i: number }) {
                                     </div>
                                 </div>
                             )}
-                            <Link href={`/problems/${h.problem_slug}`}
+                            <Link href={`/problems/${h.problem_slug}`} prefetch={false}
                                 className="inline-flex items-center gap-1 font-mono text-xs text-mistral-orange hover:underline mt-1">
                                 Re-attempt <ChevronRight className="w-3 h-3" />
                             </Link>
@@ -130,7 +130,7 @@ export function HistoryList({ history }: { history: SubmissionHistory[] }) {
                 <div className="bg-white border border-dashed border-mistral-navy/20 p-8 text-center">
                     <CheckCircle2 className="w-8 h-8 text-mistral-navy/20 mx-auto mb-2" />
                     <p className="font-mono text-xs text-mistral-navy/40 mb-1">No submissions yet</p>
-                    <Link href="/problems" className="inline-block mt-3 font-mono text-xs text-mistral-orange hover:underline">Start solving →</Link>
+                    <Link href="/problems" prefetch={false} className="inline-block mt-3 font-mono text-xs text-mistral-orange hover:underline">Start solving →</Link>
                 </div>
             ) : (
                 <div className="bg-white border border-mistral-navy/10 divide-y divide-mistral-navy/5">

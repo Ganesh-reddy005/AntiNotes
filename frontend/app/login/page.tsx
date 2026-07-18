@@ -24,9 +24,20 @@ export default function LoginPage() {
             await login(email, password);
             router.push("/dashboard");
         } catch (e: unknown) {
-            const err = e as { response?: { data?: { detail?: unknown } } };
-            const msg = err.response?.data?.detail || "Invalid credentials";
-            setError(typeof msg === "string" ? msg : JSON.stringify(msg));
+            const err = e as {
+                response?: { status?: number; data?: { detail?: unknown } };
+                request?: unknown;
+            };
+            let msg = "Invalid credentials";
+            if (err.response) {
+                // Server responded with an error status (e.g. 401 wrong password)
+                const detail = err.response.data?.detail;
+                msg = typeof detail === "string" ? detail : JSON.stringify(detail);
+            } else if (err.request) {
+                // Request made but no response — backend likely not running
+                msg = "Cannot reach the server. Is the backend running on :8000?";
+            }
+            setError(msg);
             setStatus("error");
         }
     };

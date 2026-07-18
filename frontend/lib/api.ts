@@ -18,6 +18,38 @@ const api = axios.create({
     headers: { "Content-Type": "application/json" },
 });
 
+// ─── Simple In-Memory Cache with TTL ───────────────────────────
+interface CacheEntry {
+    data: any;
+    timestamp: number;
+}
+
+const requestCache = new Map<string, CacheEntry>();
+const CACHE_TTL = 5000; // 5 seconds - prevents duplicate requests during page load
+
+function getCacheKey(url: string, params?: any): string {
+    return `${url}|${params ? JSON.stringify(params) : ""}`;
+}
+
+// Add cache helper to api client
+(api as any).getCached = async function<T = any>(url: string, params?: any): Promise<T> {
+    const key = getCacheKey(url, params);
+    const cached = requestCache.get(key);
+    
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        return Promise.resolve(cached.data);
+    }
+    
+    const response = await api.get<T>(url, { params });
+    requestCache.set(key, { data: response.data, timestamp: Date.now() });
+    return response.data;
+};
+
+export function clearApiCache() {
+    requestCache.clear();
+}
+
+
 // Inject JWT token on every request
 api.interceptors.request.use((config) => {
     if (typeof window !== "undefined") {
@@ -62,6 +94,10 @@ export interface Profile {
     additional_context?: string;
     onboarding_completed: boolean;
     preferred_explanation_style: string;
+    onboarding_summary?: string;
+    lilly_last_nudge?: string;
+    lilly_recommendation_title?: string;
+    lilly_recommended_tags?: string[];
     thinking_style?: string;
     strengths: string[];
     weaknesses: string[];
@@ -247,4 +283,18 @@ export const revisionApi = {
     suggestions: () => api.get<RevisionTopic[]>("revision/suggestions"),
     markRevised: (topic: string, data: { success: boolean; score: number; time_spent_minutes: number }) =>
         api.post(`revision/mark-revised/${encodeURIComponent(topic)}`, data),
+};
+
+// Lilly AI Companion
+export const lillyApi = {
+    onboardingChat: (data: { user_message: string; history: { role: string; content: string }[] }) =>
+        api.post<{ reply: string; is_complete: boolean; extracted_profile: any }>("lilly/onboarding/chat", data),
+    dashboardNudge: () =>
+        api.get<{ message: string; recommendation_title: string; action_type: string; action_label: string; action_link: string }>("lilly/dashboard/nudge"),
+    roadmapChat: (data: { user_message: string; history: { role: string; content: string }[]; topic_slug: string }) =>
+        api.post<{ reply: string }>("lilly/roadmap/chat", data),
+    revisionChat: (data: { user_message: string; history: { role: string; content: string }[]; topic: string }) =>
+        api.post<{ reply: string }>("lilly/revision/chat", data),
+    personalChatStream: (data: { user_message: string; history: { role: string; content: string }[]; conversation_id?: string }) =>
+        api.post("lilly/personal/chat", data, { responseType: "stream" }),
 };
