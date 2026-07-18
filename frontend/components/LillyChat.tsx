@@ -131,7 +131,14 @@ export default function LillyChat({
                 // Streaming personalization chat — use native fetch (axios XHR
                 // adapter does not expose a web ReadableStream in the browser).
                 const token = typeof window !== "undefined" ? localStorage.getItem("antinotes_token") : null;
-                const base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1").replace(/\/$/, "");
+                
+                // Ensure /api/v1 is included (handle misconfigured env vars)
+                let base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+                if (!base.includes("/api/v1")) {
+                    base = base.endsWith("/") ? `${base}api/v1` : `${base}/api/v1`;
+                }
+                base = base.replace(/\/$/, ""); // Remove trailing slash
+                
                 const url = `${base}/lilly/personal/chat`;
 
                 const fetchRes = await fetch(url, {

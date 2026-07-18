@@ -113,7 +113,13 @@ export default function TopicDetailPage() {
             }
 
             // Use the same base URL as the rest of the app
-            const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            let baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+            
+            // Ensure /api/v1 is included (handle misconfigured env vars)
+            if (!baseUrl.includes("/api/v1")) {
+                baseUrl = baseUrl.endsWith("/") ? `${baseUrl}api/v1` : `${baseUrl}/api/v1`;
+            }
+            
             // Remove trailing slash if present to avoid double slashes
             const normalizedUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
             const endpoint = `${normalizedUrl}/lilly/roadmap/chat`;
